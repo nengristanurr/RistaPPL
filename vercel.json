@@ -1,24 +1,14 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "functions": {
     "api/index.php": {
-      "runtime": "vercel-php@0.9.0",
-      "includeFiles": "{config/**,includes/**,assets/**,api/**,*.php,database.sql}"
+      "runtime": "vercel-php@0.7.2",
+      "maxDuration": 30,
+      "includeFiles": "**"
     }
   },
   "routes": [
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/_html_backup/(.*)",
-      "dest": "/_html_backup/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/api/index.php"
-    }
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/api/index.php" }
   ]
 }
