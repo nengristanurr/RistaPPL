@@ -1,0 +1,9 @@
+# Archive & temporary
+*.rar
+*.zip
+
+# Editor & OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

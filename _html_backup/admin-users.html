@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manajemen Pengguna - PawMate Admin</title>
+  <meta name="description" content="Kelola data anggota terdaftar dan riwayat adopsi di PawMate.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-header">
+        <a href="admin-dashboard.html" class="admin-brand">
+          <div class="paw-badge"><i class="fa-solid fa-paw"></i></div>
+          <span>PawMate</span>
+        </a>
+        <span class="admin-sidebar-badge">Admin</span>
+      </div>
+
+      <nav class="admin-nav">
+        <div class="admin-nav-heading">Menu Utama</div>
+        <a href="admin-dashboard.html" class="admin-nav-item">
+          <i class="fa-solid fa-gauge"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="admin-animals.html" class="admin-nav-item">
+          <i class="fa-solid fa-shield-dog"></i>
+          <span>Data Hewan</span>
+        </a>
+        <a href="admin-applications.html" class="admin-nav-item">
+          <i class="fa-solid fa-file-signature"></i>
+          <span>Pengajuan Adopsi</span>
+        </a>
+        <a href="admin-users.html" class="admin-nav-item active">
+          <i class="fa-solid fa-users"></i>
+          <span>Data Pengguna</span>
+        </a>
+
+        <div class="admin-nav-heading" style="margin-top:1rem;">Navigasi Publik</div>
+        <a href="index.html" class="admin-nav-item" target="_blank">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          <span>Lihat Website</span>
+        </a>
+        <a href="animals.html" class="admin-nav-item" target="_blank">
+          <i class="fa-solid fa-paw"></i>
+          <span>Katalog Publik</span>
+        </a>
+      </nav>
+
+      <div class="admin-sidebar-footer">
+        <div class="admin-user-card">
+          <div class="admin-user-avatar">A</div>
+          <div class="admin-user-info">
+            <div class="admin-user-name">Admin PawMate</div>
+            <div class="admin-user-role">Shelter Manager</div>
+          </div>
+          <button onclick="handleAdminLogout()" class="btn-table-action delete" title="Keluar">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <div class="admin-topbar-left">
+          <button class="admin-menu-toggle" id="admin-sidebar-toggle">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div>
+            <h1 class="admin-page-title">Manajemen Data Pengguna</h1>
+          </div>
+        </div>
+      </header>
+
+      <div class="admin-content-body">
+        <!-- Search Bar -->
+        <div class="admin-panel" style="margin-bottom: 1.5rem; padding: 1.25rem 1.5rem;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+            <div class="input-with-icon" style="max-width:400px; width:100%;">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="admin-search-users" placeholder="Cari nama, email, WhatsApp pengguna..." oninput="filterUsersTable()">
+            </div>
+            <div>
+              <span style="font-weight:700; color:var(--text-muted); font-size:0.9rem;">
+                Total Pengguna Terdaftar: <span id="total-users-badge" style="color:var(--primary);">0</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="admin-panel">
+          <div class="admin-panel-header">
+            <div class="admin-panel-title">
+              <i class="fa-solid fa-users-gear" style="color:var(--primary)"></i> Daftar Anggota Komunitas
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Pengguna</th>
+                  <th>Peran (Role)</th>
+                  <th>WhatsApp</th>
+                  <th>Tanggal Terdaftar</th>
+                  <th>Total Pengajuan</th>
+                  <th style="text-align:right;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <!-- Injected by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal: Detail Pengguna -->
+  <div class="modal-backdrop" id="user-detail-modal">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-id-card" style="color:var(--primary)"></i> Detail Profil Pengguna</h3>
+        <button class="modal-close-btn" onclick="closeUserDetailModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body" id="user-detail-body">
+        <!-- Injected by JavaScript -->
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeUserDetailModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/admin.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const admin = checkAdminAuth();
+      if (!admin) return;
+      setupAdminSidebar();
+      renderUsersTable();
+    });
+
+    function renderUsersTable() {
+      filterUsersTable();
+    }
+
+    function filterUsersTable() {
+      const q = document.getElementById('admin-search-users').value.toLowerCase().trim();
+      const users = DB.getUsers().filter(u => {
+        if (q) {
+          return u.name.toLowerCase().includes(q) ||
+                 u.email.toLowerCase().includes(q) ||
+                 (u.phone && u.phone.includes(q)) ||
+                 u.id.toLowerCase().includes(q);
+        }
+        return true;
+      });
+
+      document.getElementById('total-users-badge').textContent = users.length;
+      const tbody = document.getElementById('users-table-body');
+
+      if (users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);">Tidak ditemukan pengguna yang cocok.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = users.map(user => {
+        const userApps = DB.getApplicationsByUserId(user.id);
+        const isAdmin = user.role === 'admin';
+
+        return `
+          <tr>
+            <td>
+              <div class="table-user-cell">
+                <div class="user-avatar-sm" style="background:${isAdmin ? '#1E2538' : 'var(--primary)'}">
+                  ${user.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div style="font-weight:700;">${user.name}</div>
+                  <small style="color:var(--text-muted);">${user.email}</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge ${isAdmin ? 'badge-tag' : 'badge-approved'}" style="${isAdmin ? 'background:#1E2538; color:#fff;' : ''}">
+                ${isAdmin ? 'Admin Shelter' : 'Adopter'}
+              </span>
+            </td>
+            <td>${user.phone || '-'}</td>
+            <td>${user.registeredAt || '-'}</td>
+            <td>
+              <span class="badge badge-tag">${userApps.length} Pengajuan</span>
+            </td>
+            <td style="text-align:right;">
+              <button class="btn btn-secondary btn-sm" onclick="openUserDetailModal('${user.id}')">
+                <i class="fa-solid fa-eye"></i> Detail
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openUserDetailModal(userId) {
+      const user = DB.getUserById(userId);
+      if (!user) return;
+
+      const userApps = DB.getApplicationsByUserId(user.id);
+      const body = document.getElementById('user-detail-body');
+
+      body.innerHTML = `
+        <div style="text-align:center; margin-bottom:1.5rem;">
+          <div class="user-avatar-lg" style="width:70px; height:70px; font-size:1.8rem; margin:0 auto 0.75rem;">
+            ${user.name.charAt(0).toUpperCase()}
+          </div>
+          <h3 style="font-size:1.3rem;">${user.name}</h3>
+          <p style="color:var(--text-muted); font-size:0.9rem;">${user.email}</p>
+        </div>
+
+        <div style="background:#FFF9FB; border-radius:var(--radius-md); padding:1.2rem; border:1px solid #F5DDE5; font-size:0.9rem; display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1.5rem;">
+          <div><strong>ID:</strong> <code>${user.id}</code></div>
+          <div><strong>Role:</strong> ${user.role}</div>
+          <div><strong>WhatsApp:</strong> ${user.phone || '-'}</div>
+          <div><strong>Terdaftar:</strong> ${user.registeredAt || '-'}</div>
+          <div style="grid-column:1/-1;"><strong>Pekerjaan:</strong> ${user.occupation || '-'}</div>
+          <div style="grid-column:1/-1;"><strong>Alamat:</strong> ${user.address || '-'}</div>
+        </div>
+
+        <h4 style="font-size:1.05rem; margin-bottom:0.75rem;">Riwayat Pengajuan Adopsi (${userApps.length})</h4>
+        ${userApps.length === 0 ? `
+          <p style="color:var(--text-muted); font-size:0.88rem;">Belum pernah mengajukan formulir adopsi.</p>
+        ` : `
+          <div style="display:flex; flex-direction:column; gap:0.6rem; max-height:200px; overflow-y:auto;">
+            ${userApps.map(a => `
+              <div style="padding:0.75rem; border-radius:8px; border:1px solid #E2E8F0; display:flex; align-items:center; justify-content:space-between; font-size:0.86rem;">
+                <div>
+                  <strong>${a.petName} (${a.petSpecies})</strong>
+                  <div style="color:var(--text-muted); font-size:0.78rem;">${a.appliedAt}</div>
+                </div>
+                <span class="badge ${a.status === 'Disetujui' ? 'badge-approved' : a.status === 'Ditolak' ? 'badge-rejected' : 'badge-pending'}">${a.status}</span>
+              </div>
+            `).join('')}
+          </div>
+        `}
+      `;
+
+      document.getElementById('user-detail-modal').classList.add('active');
+    }
+
+    function closeUserDetailModal() {
+      document.getElementById('user-detail-modal').classList.remove('active');
+    }
+  </script>
+</body>
+</html>

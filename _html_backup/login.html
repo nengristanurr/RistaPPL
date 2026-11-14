@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masuk Akun - PawMate</title>
+  <meta name="description" content="Masuk ke akun PawMate untuk memantau status pengajuan adopsi dan menyimpan daftar hewan favorit.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    .auth-page-wrap {
+      min-height: calc(100vh - 160px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+      background: radial-gradient(circle at top right, #FFE8F0 0%, #FFF9FB 60%);
+    }
+
+    .auth-card {
+      background: #fff;
+      border-radius: var(--radius-xl);
+      padding: 2.8rem 2.5rem;
+      width: 100%;
+      max-width: 460px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border-light);
+    }
+
+    .demo-accounts-box {
+      margin-top: 1.8rem;
+      padding: 1.25rem;
+      background: #FFF9FB;
+      border-radius: var(--radius-md);
+      border: 1px dashed #F5C6D6;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Site Header / Navbar -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="logo-brand">
+        <div class="logo-icon-wrap">
+          <i class="fa-solid fa-paw"></i>
+        </div>
+        <span>PawMate</span>
+      </a>
+
+      <div class="nav-actions">
+        <a href="index.html" class="btn btn-outline btn-sm"><i class="fa-solid fa-arrow-left"></i> Kembali ke Beranda</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="auth-page-wrap">
+    <div class="auth-card">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <div class="logo-icon-wrap" style="margin: 0 auto 1rem; width: 50px; height: 50px; font-size: 1.5rem;">
+          <i class="fa-solid fa-paw"></i>
+        </div>
+        <h1 style="font-size: 1.85rem; margin-bottom: 0.35rem;">Selamat Datang!</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Masuk untuk mengelola adopsi dan anabul favorit Anda.</p>
+      </div>
+
+      <!-- Error Alert Box -->
+      <div id="login-error-msg" style="display:none; background:#FEE2E2; color:#DC2626; border:1px solid #FECACA; padding:0.8rem 1rem; border-radius:var(--radius-md); font-size:0.88rem; margin-bottom:1.25rem;">
+      </div>
+
+      <form onsubmit="handleLoginSubmit(event)">
+        <div class="form-group">
+          <label class="form-label" for="login-email">Email <span class="required">*</span></label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" id="login-email" class="form-control" placeholder="nama@email.com" value="rista@example.com" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="login-password">Kata Sandi <span class="required">*</span></label>
+          <div class="input-password-group input-with-icon">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="login-password" class="form-control" placeholder="Masukkan kata sandi" value="password" required>
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('login-password', this)" title="Lihat kata sandi">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; font-size:0.85rem;">
+          <label class="checkbox-label" style="font-size:0.85rem;">
+            <input type="checkbox" checked> Ingat saya
+          </label>
+          <a href="#" onclick="alert('Untuk demonstrasi prototipe, gunakan akun demo di bawah.'); return false;" style="color:var(--primary); font-weight:600;">Lupa Sandi?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; height:48px; font-size:1rem;">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i> Masuk Sekarang
+        </button>
+      </form>
+
+      <!-- Quick Demo Login Switcher -->
+      <div class="demo-accounts-box">
+        <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.75rem; text-align:center;">
+          <i class="fa-solid fa-bolt" style="color:#F59E0B"></i> Akses Cepat Demo (Pengujian)
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="loginAsDemo('user')" style="font-size:0.82rem;">
+            <i class="fa-solid fa-user"></i> Akun Pengguna
+          </button>
+          <button type="button" class="btn btn-navy btn-sm" onclick="loginAsDemo('admin')" style="font-size:0.82rem;">
+            <i class="fa-solid fa-shield-halved"></i> Akun Admin
+          </button>
+        </div>
+        <p style="font-size:0.75rem; color:#94A3B8; margin-top:0.6rem; text-align:center;">
+          * Autentikasi prototipe menggunakan penyimpanan sesi LocalStorage.
+        </p>
+      </div>
+
+      <div style="text-align:center; margin-top:1.75rem; font-size:0.92rem; color:var(--text-muted);">
+        Belum punya akun? <a href="register.html" style="color:var(--primary); font-weight:700;">Daftar di sini</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/auth.js"></script>
+</body>
+</html>

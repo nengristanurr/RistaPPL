@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - PawMate</title>
+  <meta name="description" content="Dashboard Pengurus PawMate: pantau statistik adopsi, data hewan, dan pengajuan terbaru.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+
+  <div class="admin-layout">
+    <!-- Admin Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-header">
+        <a href="admin-dashboard.html" class="admin-brand">
+          <div class="paw-badge">
+            <i class="fa-solid fa-paw"></i>
+          </div>
+          <span>PawMate</span>
+        </a>
+        <span class="admin-sidebar-badge">Admin</span>
+      </div>
+
+      <nav class="admin-nav">
+        <div class="admin-nav-heading">Menu Utama</div>
+        <a href="admin-dashboard.html" class="admin-nav-item active">
+          <i class="fa-solid fa-gauge"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="admin-animals.html" class="admin-nav-item">
+          <i class="fa-solid fa-shield-dog"></i>
+          <span>Data Hewan</span>
+          <span class="nav-count-badge" id="nav-count-pets">0</span>
+        </a>
+        <a href="admin-applications.html" class="admin-nav-item">
+          <i class="fa-solid fa-file-signature"></i>
+          <span>Pengajuan Adopsi</span>
+          <span class="nav-count-badge" id="nav-count-apps">0</span>
+        </a>
+        <a href="admin-users.html" class="admin-nav-item">
+          <i class="fa-solid fa-users"></i>
+          <span>Data Pengguna</span>
+        </a>
+
+        <div class="admin-nav-heading" style="margin-top:1rem;">Navigasi Publik</div>
+        <a href="index.html" class="admin-nav-item" target="_blank">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          <span>Lihat Website</span>
+        </a>
+        <a href="animals.html" class="admin-nav-item" target="_blank">
+          <i class="fa-solid fa-paw"></i>
+          <span>Katalog Publik</span>
+        </a>
+      </nav>
+
+      <div class="admin-sidebar-footer">
+        <div class="admin-user-card">
+          <div class="admin-user-avatar">A</div>
+          <div class="admin-user-info">
+            <div class="admin-user-name" id="admin-sidebar-user-name">Admin PawMate</div>
+            <div class="admin-user-role">Shelter Manager</div>
+          </div>
+          <button onclick="handleAdminLogout()" class="btn-table-action delete" title="Keluar">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Admin Main Body -->
+    <main class="admin-main">
+      <!-- Admin Topbar -->
+      <header class="admin-topbar">
+        <div class="admin-topbar-left">
+          <button class="admin-menu-toggle" id="admin-sidebar-toggle">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div>
+            <h1 class="admin-page-title">Ringkasan Dashboard</h1>
+          </div>
+        </div>
+
+        <div class="admin-topbar-right">
+          <div class="admin-date-badge">
+            <i class="fa-regular fa-calendar"></i>
+            <span id="admin-current-date">Senin, 12 Oktober 2026</span>
+          </div>
+          <a href="admin-animals.html?action=add" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-plus"></i> Tambah Hewan
+          </a>
+        </div>
+      </header>
+
+      <!-- Admin Content -->
+      <div class="admin-content-body">
+        <!-- Admin Greeting Banner -->
+        <div style="background: linear-gradient(135deg, #1E2538 0%, #2B344D 100%); color:white; border-radius:var(--radius-xl); padding:2rem 2.2rem; margin-bottom:2rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1.25rem;">
+          <div>
+            <span class="badge" style="background:rgba(243, 107, 145, 0.2); color:#FF85A2; margin-bottom:0.4rem;">
+              <i class="fa-solid fa-shield-cat"></i> Selamat Datang Pengurus Shelter
+            </span>
+            <h2 style="color:white; font-size:1.85rem; margin-bottom:0.35rem;">Halo, <span id="admin-greeting-name">Admin PawMate</span> 👋</h2>
+            <p style="color:#94A3B8; font-size:0.95rem; max-width:600px;">
+              Pantau perkembangan adopsi hewan dan kelola respon berkas pemohon dengan cepat untuk memberikan masa depan terbaik bagi setiap anabul.
+            </p>
+          </div>
+          <div style="display:flex; gap:0.75rem;">
+            <button onclick="handleResetDemoData()" class="btn btn-outline btn-sm" style="color:white; border-color:rgba(255,255,255,0.2);">
+              <i class="fa-solid fa-rotate"></i> Reset Data Demo
+            </button>
+          </div>
+        </div>
+
+        <!-- 6 Dynamic Statistics Cards -->
+        <div class="admin-stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon pink"><i class="fa-solid fa-paw"></i></div>
+            <div class="stat-info">
+              <h4>Total Hewan</h4>
+              <div class="stat-number" id="stat-total-pets">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="stat-info">
+              <h4>Hewan Tersedia</h4>
+              <div class="stat-number" id="stat-available-pets">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon blue"><i class="fa-solid fa-file-lines"></i></div>
+            <div class="stat-info">
+              <h4>Total Pengajuan</h4>
+              <div class="stat-number" id="stat-total-apps">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon yellow"><i class="fa-solid fa-hourglass-half"></i></div>
+            <div class="stat-info">
+              <h4>Pengajuan Menunggu</h4>
+              <div class="stat-number" id="stat-pending-apps">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon green"><i class="fa-solid fa-heart-circle-check"></i></div>
+            <div class="stat-info">
+              <h4>Pengajuan Disetujui</h4>
+              <div class="stat-number" id="stat-approved-apps">0</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon red"><i class="fa-solid fa-ban"></i></div>
+            <div class="stat-info">
+              <h4>Pengajuan Ditolak</h4>
+              <div class="stat-number" id="stat-rejected-apps">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Pengajuan Terbaru -->
+        <div class="admin-panel">
+          <div class="admin-panel-header">
+            <div class="admin-panel-title">
+              <i class="fa-solid fa-clock-rotate-left" style="color:var(--primary)"></i> Pengajuan Adopsi Terbaru
+            </div>
+            <a href="admin-applications.html" class="btn btn-secondary btn-sm">
+              Lihat Semua Pengajuan <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Pemohon</th>
+                  <th>Hewan</th>
+                  <th>Tanggal</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="recent-applications-tbody">
+                <!-- Injected by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section: Data Hewan Terkini -->
+        <div class="admin-panel">
+          <div class="admin-panel-header">
+            <div class="admin-panel-title">
+              <i class="fa-solid fa-shield-dog" style="color:var(--primary)"></i> Hewan di Shelter
+            </div>
+            <div class="admin-table-actions">
+              <a href="admin-animals.html" class="btn btn-secondary btn-sm">
+                Kelola Semua Hewan <i class="fa-solid fa-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Foto</th>
+                  <th>Nama Hewan</th>
+                  <th>Jenis & Ras</th>
+                  <th>Usia</th>
+                  <th>Kelamin</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="recent-animals-tbody">
+                <!-- Injected by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/admin.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const admin = checkAdminAuth();
+      if (!admin) return;
+
+      setupAdminSidebar();
+      renderDashboardStats();
+      renderRecentApplications();
+      renderRecentAnimals();
+    });
+
+    function renderDashboardStats() {
+      const stats = getAdminStats();
+
+      document.getElementById('stat-total-pets').textContent = stats.totalPets;
+      document.getElementById('stat-available-pets').textContent = stats.availablePets;
+      document.getElementById('stat-total-apps').textContent = stats.totalApps;
+      document.getElementById('stat-pending-apps').textContent = stats.pendingApps;
+      document.getElementById('stat-approved-apps').textContent = stats.approvedApps;
+      document.getElementById('stat-rejected-apps').textContent = stats.rejectedApps;
+
+      const petCountEl = document.getElementById('nav-count-pets');
+      if (petCountEl) petCountEl.textContent = stats.totalPets;
+
+      const appCountEl = document.getElementById('nav-count-apps');
+      if (appCountEl) appCountEl.textContent = stats.pendingApps > 0 ? stats.pendingApps : stats.totalApps;
+    }
+
+    function renderRecentApplications() {
+      const tbody = document.getElementById('recent-applications-tbody');
+      const apps = DB.getApplications().slice(0, 5);
+
+      if (apps.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);">Belum ada berkas pengajuan adopsi.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = apps.map(app => {
+        let badgeClass = 'badge-pending';
+        if (app.status === 'Dalam Proses') badgeClass = 'badge-process';
+        if (app.status === 'Disetujui') badgeClass = 'badge-approved';
+        if (app.status === 'Ditolak') badgeClass = 'badge-rejected';
+
+        return `
+          <tr>
+            <td><strong><code>${app.id}</code></strong></td>
+            <td>
+              <div class="table-user-cell">
+                <div>
+                  <div style="font-weight:700;">${app.userName}</div>
+                  <small style="color:var(--text-muted);">${app.userPhone}</small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:0.6rem;">
+                <img src="${app.petImage}" alt="${app.petName}" class="admin-pet-thumb" style="width:36px; height:36px;">
+                <span>${app.petName} (${app.petSpecies})</span>
+              </div>
+            </td>
+            <td>${app.appliedAt}</td>
+            <td><span class="badge ${badgeClass}">${app.status}</span></td>
+            <td>
+              <a href="admin-applications.html?appId=${app.id}" class="btn btn-secondary btn-sm" title="Tinjau Berkas">
+                <i class="fa-solid fa-clipboard-check"></i> Periksa
+              </a>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderRecentAnimals() {
+      const tbody = document.getElementById('recent-animals-tbody');
+      const pets = DB.getPets().slice(0, 5);
+
+      tbody.innerHTML = pets.map(pet => {
+        let badgeClass = 'badge-approved';
+        if (pet.status === 'Dalam Proses') badgeClass = 'badge-process';
+        if (pet.status === 'Sudah Diadopsi') badgeClass = 'badge-rejected';
+
+        return `
+          <tr>
+            <td>
+              <img src="${pet.image}" alt="${pet.name}" class="admin-pet-thumb">
+            </td>
+            <td><strong>${pet.name}</strong></td>
+            <td>${pet.breed || pet.species}</td>
+            <td>${pet.age}</td>
+            <td>${pet.gender}</td>
+            <td><span class="badge ${badgeClass}">${pet.status}</span></td>
+            <td>
+              <a href="admin-animals.html?edit=${pet.id}" class="btn-table-action" title="Edit Data">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </a>
+              <a href="animal-detail.html?id=${pet.id}" target="_blank" class="btn-table-action" title="Lihat di Web">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              </a>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function handleResetDemoData() {
+      if (confirm('Apakah Anda ingin mereset seluruh data kembali ke kondisi default demo PawMate?')) {
+        DB.resetDemoData();
+        showToast('Data Direset', 'Database LocalStorage telah diatur ulang ke data awal.', 'info');
+        setTimeout(() => window.location.reload(), 600);
+      }
+    }
+  </script>
+</body>
+</html>

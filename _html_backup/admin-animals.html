@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manajemen Data Hewan - PawMate Admin</title>
+  <meta name="description" content="Portal pengurus shelter PawMate untuk mengelola database hewan adopsi.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-header">
+        <a href="admin-dashboard.html" class="admin-brand">
+          <div class="paw-badge"><i class="fa-solid fa-paw"></i></div>
+          <span>PawMate</span>
+        </a>
+        <span class="admin-sidebar-badge">Admin</span>
+      </div>
+
+      <nav class="admin-nav">
+        <div class="admin-nav-heading">Menu Utama</div>
+        <a href="admin-dashboard.html" class="admin-nav-item">
+          <i class="fa-solid fa-gauge"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="admin-animals.html" class="admin-nav-item active">
+          <i class="fa-solid fa-shield-dog"></i>
+          <span>Data Hewan</span>
+          <span class="nav-count-badge" id="nav-count-pets">0</span>
+        </a>
+        <a href="admin-applications.html" class="admin-nav-item">
+          <i class="fa-solid fa-file-signature"></i>
+          <span>Pengajuan Adopsi</span>
+        </a>
+        <a href="admin-users.html" class="admin-nav-item">
+          <i class="fa-solid fa-users"></i>
+          <span>Data Pengguna</span>
+        </a>
+
+        <div class="admin-nav-heading" style="margin-top:1rem;">Navigasi Publik</div>
+        <a href="index.html" class="admin-nav-item" target="_blank">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          <span>Lihat Website</span>
+        </a>
+        <a href="animals.html" class="admin-nav-item" target="_blank">
+          <i class="fa-solid fa-paw"></i>
+          <span>Katalog Publik</span>
+        </a>
+      </nav>
+
+      <div class="admin-sidebar-footer">
+        <div class="admin-user-card">
+          <div class="admin-user-avatar">A</div>
+          <div class="admin-user-info">
+            <div class="admin-user-name">Admin PawMate</div>
+            <div class="admin-user-role">Shelter Manager</div>
+          </div>
+          <button onclick="handleAdminLogout()" class="btn-table-action delete" title="Keluar">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <div class="admin-topbar-left">
+          <button class="admin-menu-toggle" id="admin-sidebar-toggle">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div>
+            <h1 class="admin-page-title">Manajemen Data Hewan</h1>
+          </div>
+        </div>
+
+        <div class="admin-topbar-right">
+          <button class="btn btn-primary" onclick="openAddPetModal()">
+            <i class="fa-solid fa-plus"></i> Tambah Hewan Baru
+          </button>
+        </div>
+      </header>
+
+      <div class="admin-content-body">
+        <!-- Control Bar: Search & Filter -->
+        <div class="admin-panel" style="margin-bottom: 1.5rem; padding: 1.25rem 1.5rem;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:0.75rem; flex-grow:1; max-width:400px;">
+              <div class="input-with-icon" style="width:100%;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="admin-search-pet" placeholder="Cari nama, ras, atau ID..." oninput="filterPetsTable()">
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+              <select id="admin-filter-species" class="form-control" style="width:auto; padding:0.6rem 2rem 0.6rem 1rem;" onchange="filterPetsTable()">
+                <option value="all">Semua Spesies</option>
+                <option value="Anjing">Anjing 🐶</option>
+                <option value="Kucing">Kucing 🐱</option>
+              </select>
+
+              <select id="admin-filter-status" class="form-control" style="width:auto; padding:0.6rem 2rem 0.6rem 1rem;" onchange="filterPetsTable()">
+                <option value="all">Semua Status</option>
+                <option value="Tersedia">Tersedia</option>
+                <option value="Dalam Proses">Dalam Proses</option>
+                <option value="Sudah Diadopsi">Sudah Diadopsi</option>
+              </select>
+
+              <button class="btn btn-outline btn-sm" onclick="resetPetFilters()">
+                <i class="fa-solid fa-rotate-left"></i> Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table Panel -->
+        <div class="admin-panel">
+          <div class="admin-panel-header">
+            <div class="admin-panel-title">
+              <i class="fa-solid fa-table-list" style="color:var(--primary)"></i> Daftar Seluruh Hewan (<span id="total-pets-count">0</span>)
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Foto</th>
+                  <th>ID</th>
+                  <th>Nama Hewan</th>
+                  <th>Spesies & Ras</th>
+                  <th>Usia</th>
+                  <th>Kelamin</th>
+                  <th>Lokasi</th>
+                  <th>Status</th>
+                  <th style="text-align:right;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="pets-table-body">
+                <!-- Injected by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal: Tambah / Edit Hewan -->
+  <div class="modal-backdrop" id="pet-form-modal">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3 id="pet-modal-title"><i class="fa-solid fa-shield-dog" style="color:var(--primary)"></i> Tambah Hewan Baru</h3>
+        <button class="modal-close-btn" onclick="closePetFormModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="pet-crud-form" onsubmit="handleSavePet(event)">
+        <div class="modal-body">
+          <input type="hidden" id="pet-form-id">
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem;">
+            <div class="form-group">
+              <label class="form-label" for="pet-input-name">Nama Hewan <span class="required">*</span></label>
+              <input type="text" id="pet-input-name" class="form-control" placeholder="Contoh: Milo" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="pet-input-species">Jenis / Spesies <span class="required">*</span></label>
+              <select id="pet-input-species" class="form-control" required>
+                <option value="Anjing">Anjing</option>
+                <option value="Kucing">Kucing</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem;">
+            <div class="form-group">
+              <label class="form-label" for="pet-input-breed">Ras / Keturunan</label>
+              <input type="text" id="pet-input-breed" class="form-control" placeholder="Contoh: Golden Retriever Mix">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="pet-input-age">Usia <span class="required">*</span></label>
+              <input type="text" id="pet-input-age" class="form-control" placeholder="Contoh: 1.5 Tahun / 6 Bulan" required>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.2rem;">
+            <div class="form-group">
+              <label class="form-label" for="pet-input-gender">Jenis Kelamin <span class="required">*</span></label>
+              <select id="pet-input-gender" class="form-control" required>
+                <option value="Jantan">Jantan</option>
+                <option value="Betina">Betina</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="pet-input-size">Ukuran</label>
+              <select id="pet-input-size" class="form-control">
+                <option value="Kecil">Kecil</option>
+                <option value="Sedang">Sedang</option>
+                <option value="Besar">Besar</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="pet-input-status">Status Adopsi <span class="required">*</span></label>
+              <select id="pet-input-status" class="form-control" required>
+                <option value="Tersedia">Tersedia</option>
+                <option value="Dalam Proses">Dalam Proses</option>
+                <option value="Sudah Diadopsi">Sudah Diadopsi</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="pet-input-location">Lokasi Shelter / Domisili <span class="required">*</span></label>
+            <input type="text" id="pet-input-location" class="form-control" placeholder="Contoh: Jakarta Selatan" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="pet-input-image">URL Foto Hewan <span class="required">*</span></label>
+            <div style="display:flex; gap:0.6rem;">
+              <input type="url" id="pet-input-image" class="form-control" placeholder="https://images.unsplash.com/..." required oninput="previewPetImage(this.value)">
+              <button type="button" class="btn btn-outline btn-sm" onclick="pickPresetPhoto()" title="Pilih Preset Foto Lucu">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Preset
+              </button>
+            </div>
+            <div id="image-preview-box" style="margin-top:0.75rem; text-align:center;">
+              <img id="img-preview" src="" alt="Preview Foto" style="width:120px; height:120px; object-fit:cover; border-radius:14px; border:2px dashed #E2E8F0; display:none; margin:0 auto;">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="pet-input-desc">Deskripsi Karakter & Kebiasaan <span class="required">*</span></label>
+            <textarea id="pet-input-desc" class="form-control" rows="3" placeholder="Ceritakan kepribadian hewan..." required></textarea>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.2rem;">
+            <div class="form-group">
+              <label class="form-label" for="pet-input-health">Kondisi Kesehatan</label>
+              <input type="text" id="pet-input-health" class="form-control" placeholder="Contoh: Sehat prima, sudah steril">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="pet-input-vaccinated">Status Vaksinasi</label>
+              <input type="text" id="pet-input-vaccinated" class="form-control" placeholder="Contoh: Lengkap (Rabies & Tricat)">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="pet-input-care">Kebutuhan Perawatan</label>
+            <input type="text" id="pet-input-care" class="form-control" placeholder="Contoh: Perlu jalan santai pagi hari & makan teratur">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closePetFormModal()">Batal</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Data Hewan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/admin.js"></script>
+  <script>
+    const PRESET_PHOTOS = [
+      'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1533738363-b7f9aef128ce?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1612536057832-2ff7ead58194?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1561037404-61cd46aa615b?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1505628346881-b72b27e84530?auto=format&fit=crop&w=800&q=80'
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const admin = checkAdminAuth();
+      if (!admin) return;
+      setupAdminSidebar();
+      renderPetsTable();
+
+      // Check URL query for action
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('action') === 'add') {
+        openAddPetModal();
+      } else if (urlParams.has('edit')) {
+        openEditPetModal(urlParams.get('edit'));
+      }
+    });
+
+    function renderPetsTable() {
+      filterPetsTable();
+    }
+
+    function filterPetsTable() {
+      const q = document.getElementById('admin-search-pet').value.toLowerCase().trim();
+      const species = document.getElementById('admin-filter-species').value;
+      const status = document.getElementById('admin-filter-status').value;
+
+      const pets = DB.getPets().filter(p => {
+        if (q) {
+          const match = p.name.toLowerCase().includes(q) ||
+                        (p.breed || '').toLowerCase().includes(q) ||
+                        p.id.toLowerCase().includes(q) ||
+                        p.location.toLowerCase().includes(q);
+          if (!match) return false;
+        }
+        if (species !== 'all' && p.species !== species) return false;
+        if (status !== 'all' && p.status !== status) return false;
+        return true;
+      });
+
+      document.getElementById('total-pets-count').textContent = pets.length;
+      document.getElementById('nav-count-pets').textContent = pets.length;
+
+      const tbody = document.getElementById('pets-table-body');
+      if (pets.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:2.5rem; color:var(--text-muted);">Tidak ada data hewan yang sesuai dengan pencarian/filter.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = pets.map(pet => {
+        let badgeClass = 'badge-approved';
+        if (pet.status === 'Dalam Proses') badgeClass = 'badge-process';
+        if (pet.status === 'Sudah Diadopsi') badgeClass = 'badge-rejected';
+
+        return `
+          <tr>
+            <td>
+              <img src="${pet.image}" alt="${pet.name}" class="admin-pet-thumb" onerror="this.src='https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80'">
+            </td>
+            <td><code>${pet.id}</code></td>
+            <td><strong>${pet.name}</strong></td>
+            <td>${pet.species} • ${pet.breed || '-'}</td>
+            <td>${pet.age}</td>
+            <td>${pet.gender}</td>
+            <td>${pet.location}</td>
+            <td><span class="badge ${badgeClass}">${pet.status}</span></td>
+            <td style="text-align:right;">
+              <div class="action-buttons-cell" style="justify-content:flex-end;">
+                <button class="btn-table-action" onclick="openEditPetModal('${pet.id}')" title="Edit Data">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <a href="animal-detail.html?id=${pet.id}" target="_blank" class="btn-table-action" title="Pratinjau Web">
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+                <button class="btn-table-action delete" onclick="handleDeletePet('${pet.id}')" title="Hapus Hewan">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function resetPetFilters() {
+      document.getElementById('admin-search-pet').value = '';
+      document.getElementById('admin-filter-species').value = 'all';
+      document.getElementById('admin-filter-status').value = 'all';
+      filterPetsTable();
+    }
+
+    function previewPetImage(url) {
+      const img = document.getElementById('img-preview');
+      if (url && (url.startsWith('http') || url.startsWith('data:'))) {
+        img.src = url;
+        img.style.display = 'block';
+      } else {
+        img.style.display = 'none';
+      }
+    }
+
+    function pickPresetPhoto() {
+      const randomPreset = PRESET_PHOTOS[Math.floor(Math.random() * PRESET_PHOTOS.length)];
+      const input = document.getElementById('pet-input-image');
+      input.value = randomPreset;
+      previewPetImage(randomPreset);
+    }
+
+    function openAddPetModal() {
+      document.getElementById('pet-crud-form').reset();
+      document.getElementById('pet-form-id').value = '';
+      document.getElementById('pet-modal-title').innerHTML = '<i class="fa-solid fa-plus" style="color:var(--primary)"></i> Tambah Hewan Baru';
+      pickPresetPhoto();
+      document.getElementById('pet-form-modal').classList.add('active');
+    }
+
+    function openEditPetModal(petId) {
+      const pet = DB.getPetById(petId);
+      if (!pet) return;
+
+      document.getElementById('pet-form-id').value = pet.id;
+      document.getElementById('pet-input-name').value = pet.name;
+      document.getElementById('pet-input-species').value = pet.species;
+      document.getElementById('pet-input-breed').value = pet.breed || '';
+      document.getElementById('pet-input-age').value = pet.age;
+      document.getElementById('pet-input-gender').value = pet.gender;
+      document.getElementById('pet-input-size').value = pet.size || 'Sedang';
+      document.getElementById('pet-input-status').value = pet.status;
+      document.getElementById('pet-input-location').value = pet.location;
+      document.getElementById('pet-input-image').value = pet.image;
+      document.getElementById('pet-input-desc').value = pet.description || '';
+      document.getElementById('pet-input-health').value = pet.health || '';
+      document.getElementById('pet-input-vaccinated').value = pet.vaccinated || '';
+      document.getElementById('pet-input-care').value = pet.careNeeds || '';
+
+      previewPetImage(pet.image);
+      document.getElementById('pet-modal-title').innerHTML = `<i class="fa-solid fa-pen-to-square" style="color:var(--primary)"></i> Edit Data ${pet.name}`;
+      document.getElementById('pet-form-modal').classList.add('active');
+    }
+
+    function closePetFormModal() {
+      document.getElementById('pet-form-modal').classList.remove('active');
+    }
+
+    function handleSavePet(e) {
+      e.preventDefault();
+
+      const existingId = document.getElementById('pet-form-id').value;
+      const petId = existingId || ('pet-' + Date.now());
+
+      const petData = {
+        id: petId,
+        name: document.getElementById('pet-input-name').value.trim(),
+        species: document.getElementById('pet-input-species').value,
+        breed: document.getElementById('pet-input-breed').value.trim() || 'Mix',
+        age: document.getElementById('pet-input-age').value.trim(),
+        gender: document.getElementById('pet-input-gender').value,
+        size: document.getElementById('pet-input-size').value,
+        status: document.getElementById('pet-input-status').value,
+        location: document.getElementById('pet-input-location').value.trim(),
+        image: document.getElementById('pet-input-image').value.trim(),
+        gallery: [document.getElementById('pet-input-image').value.trim()],
+        description: document.getElementById('pet-input-desc').value.trim(),
+        health: document.getElementById('pet-input-health').value.trim() || 'Sehat terawat',
+        vaccinated: document.getElementById('pet-input-vaccinated').value.trim() || 'Lengkap',
+        careNeeds: document.getElementById('pet-input-care').value.trim() || 'Kasih sayang harian',
+        temperament: ['Ramah', 'Lincah', 'Penyayang'],
+        createdAt: new Date().toISOString().slice(0, 10)
+      };
+
+      DB.savePet(petData);
+      closePetFormModal();
+      filterPetsTable();
+
+      showToast('Data Tersimpan', `Informasi hewan ${petData.name} berhasil disimpan ke sistem!`, 'success');
+    }
+
+    function handleDeletePet(petId) {
+      const pet = DB.getPetById(petId);
+      if (!pet) return;
+
+      if (confirm(`Apakah Anda yakin ingin menghapus hewan "${pet.name}" (${pet.id}) dari database? Tindakan ini tidak dapat dibatalkan.`)) {
+        DB.deletePet(petId);
+        filterPetsTable();
+        showToast('Hewan Dihapus', `${pet.name} berhasil dihapus dari sistem.`, 'info');
+      }
+    }
+  </script>
+</body>
+</html>

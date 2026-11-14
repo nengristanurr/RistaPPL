@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manajemen Pengajuan Adopsi - PawMate Admin</title>
+  <meta name="description" content="Tinjau dan verifikasi pengajuan adopsi hewan shelter PawMate.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-header">
+        <a href="admin-dashboard.html" class="admin-brand">
+          <div class="paw-badge"><i class="fa-solid fa-paw"></i></div>
+          <span>PawMate</span>
+        </a>
+        <span class="admin-sidebar-badge">Admin</span>
+      </div>
+
+      <nav class="admin-nav">
+        <div class="admin-nav-heading">Menu Utama</div>
+        <a href="admin-dashboard.html" class="admin-nav-item">
+          <i class="fa-solid fa-gauge"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="admin-animals.html" class="admin-nav-item">
+          <i class="fa-solid fa-shield-dog"></i>
+          <span>Data Hewan</span>
+        </a>
+        <a href="admin-applications.html" class="admin-nav-item active">
+          <i class="fa-solid fa-file-signature"></i>
+          <span>Pengajuan Adopsi</span>
+          <span class="nav-count-badge" id="nav-count-apps">0</span>
+        </a>
+        <a href="admin-users.html" class="admin-nav-item">
+          <i class="fa-solid fa-users"></i>
+          <span>Data Pengguna</span>
+        </a>
+
+        <div class="admin-nav-heading" style="margin-top:1rem;">Navigasi Publik</div>
+        <a href="index.html" class="admin-nav-item" target="_blank">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          <span>Lihat Website</span>
+        </a>
+        <a href="animals.html" class="admin-nav-item" target="_blank">
+          <i class="fa-solid fa-paw"></i>
+          <span>Katalog Publik</span>
+        </a>
+      </nav>
+
+      <div class="admin-sidebar-footer">
+        <div class="admin-user-card">
+          <div class="admin-user-avatar">A</div>
+          <div class="admin-user-info">
+            <div class="admin-user-name">Admin PawMate</div>
+            <div class="admin-user-role">Shelter Manager</div>
+          </div>
+          <button onclick="handleAdminLogout()" class="btn-table-action delete" title="Keluar">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <div class="admin-topbar-left">
+          <button class="admin-menu-toggle" id="admin-sidebar-toggle">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div>
+            <h1 class="admin-page-title">Manajemen Pengajuan Adopsi</h1>
+          </div>
+        </div>
+      </header>
+
+      <div class="admin-content-body">
+        <!-- Filter Controls -->
+        <div class="admin-panel" style="margin-bottom: 1.5rem; padding: 1.25rem 1.5rem;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+            <div style="display:flex; align-items:center; gap:0.75rem; flex-grow:1; max-width:400px;">
+              <div class="input-with-icon" style="width:100%;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="admin-search-apps" placeholder="Cari nama pemohon, email, hewan..." oninput="filterAppsTable()">
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+              <select id="admin-filter-app-status" class="form-control" style="width:auto; padding:0.6rem 2rem 0.6rem 1rem;" onchange="filterAppsTable()">
+                <option value="all">Semua Status</option>
+                <option value="Menunggu">Menunggu</option>
+                <option value="Dalam Proses">Dalam Proses</option>
+                <option value="Disetujui">Disetujui</option>
+                <option value="Ditolak">Ditolak</option>
+              </select>
+
+              <button class="btn btn-outline btn-sm" onclick="resetAppFilters()">
+                <i class="fa-solid fa-rotate-left"></i> Reset Filter
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Applications Table -->
+        <div class="admin-panel">
+          <div class="admin-panel-header">
+            <div class="admin-panel-title">
+              <i class="fa-solid fa-clipboard-list" style="color:var(--primary)"></i> Daftar Berkas Pengajuan (<span id="total-apps-count">0</span>)
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>ID Berkas</th>
+                  <th>Pemohon</th>
+                  <th>WhatsApp</th>
+                  <th>Hewan Target</th>
+                  <th>Tipe Rumah</th>
+                  <th>Tanggal Pengajuan</th>
+                  <th>Status</th>
+                  <th style="text-align:right;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="apps-table-body">
+                <!-- Injected by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal: Review Pengajuan & Decision -->
+  <div class="modal-backdrop" id="review-app-modal">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3 id="review-modal-title"><i class="fa-solid fa-clipboard-check" style="color:var(--primary)"></i> Review Berkas Pengajuan</h3>
+        <button class="modal-close-btn" onclick="closeReviewModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body" id="review-modal-body">
+        <!-- Injected by JavaScript -->
+      </div>
+
+      <div class="modal-footer" style="flex-wrap:wrap; justify-content:space-between; gap:0.75rem;">
+        <div>
+          <button class="btn btn-outline" onclick="closeReviewModal()">Tutup</button>
+        </div>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <button class="btn btn-outline" onclick="updateStatusFromModal('Dalam Proses')" style="color:#1E40AF; border-color:#BFDBFE; background:#EFF6FF;">
+            <i class="fa-solid fa-clock"></i> Set Dalam Proses
+          </button>
+          <button class="btn btn-outline" onclick="updateStatusFromModal('Ditolak')" style="color:#DC2626; border-color:#FECACA; background:#FEF2F2;">
+            <i class="fa-solid fa-circle-xmark"></i> Tolak Pengajuan
+          </button>
+          <button class="btn btn-primary" onclick="updateStatusFromModal('Disetujui')">
+            <i class="fa-solid fa-circle-check"></i> Setujui Adopsi
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/admin.js"></script>
+  <script>
+    let activeAppId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const admin = checkAdminAuth();
+      if (!admin) return;
+      setupAdminSidebar();
+      renderApplicationsTable();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('appId')) {
+        openReviewModal(urlParams.get('appId'));
+      }
+    });
+
+    function renderApplicationsTable() {
+      filterAppsTable();
+    }
+
+    function filterAppsTable() {
+      const q = document.getElementById('admin-search-apps').value.toLowerCase().trim();
+      const status = document.getElementById('admin-filter-app-status').value;
+
+      const apps = DB.getApplications().filter(a => {
+        if (q) {
+          const match = a.id.toLowerCase().includes(q) ||
+                        a.userName.toLowerCase().includes(q) ||
+                        a.userEmail.toLowerCase().includes(q) ||
+                        a.petName.toLowerCase().includes(q) ||
+                        (a.userPhone || '').includes(q);
+          if (!match) return false;
+        }
+        if (status !== 'all' && a.status !== status) return false;
+        return true;
+      });
+
+      document.getElementById('total-apps-count').textContent = apps.length;
+      document.getElementById('nav-count-apps').textContent = apps.filter(a => a.status === 'Menunggu').length;
+
+      const tbody = document.getElementById('apps-table-body');
+      if (apps.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:2.5rem; color:var(--text-muted);">Tidak ada pengajuan yang sesuai.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = apps.map(app => {
+        let badgeClass = 'badge-pending';
+        if (app.status === 'Dalam Proses') badgeClass = 'badge-process';
+        if (app.status === 'Disetujui') badgeClass = 'badge-approved';
+        if (app.status === 'Ditolak') badgeClass = 'badge-rejected';
+
+        return `
+          <tr>
+            <td><strong><code>${app.id}</code></strong></td>
+            <td>
+              <div style="font-weight:700;">${app.userName}</div>
+              <small style="color:var(--text-muted);">${app.userEmail}</small>
+            </td>
+            <td>
+              <a href="https://wa.me/${app.userPhone.replace(/^0/, '62')}" target="_blank" style="color:#059669; font-weight:600;">
+                <i class="fa-brands fa-whatsapp"></i> ${app.userPhone}
+              </a>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:0.6rem;">
+                <img src="${app.petImage}" alt="${app.petName}" class="admin-pet-thumb" style="width:34px; height:34px;">
+                <span>${app.petName}</span>
+              </div>
+            </td>
+            <td><span style="font-size:0.85rem; color:var(--text-muted);">${app.housingType}</span></td>
+            <td><small>${app.appliedAt}</small></td>
+            <td><span class="badge ${badgeClass}">${app.status}</span></td>
+            <td style="text-align:right;">
+              <button class="btn btn-secondary btn-sm" onclick="openReviewModal('${app.id}')">
+                <i class="fa-solid fa-magnifying-glass"></i> Periksa
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function resetAppFilters() {
+      document.getElementById('admin-search-apps').value = '';
+      document.getElementById('admin-filter-app-status').value = 'all';
+      filterAppsTable();
+    }
+
+    function openReviewModal(appId) {
+      activeAppId = appId;
+      const app = DB.getApplicationById(appId);
+      if (!app) return;
+
+      const body = document.getElementById('review-modal-body');
+
+      let badgeClass = 'badge-pending';
+      if (app.status === 'Dalam Proses') badgeClass = 'badge-process';
+      if (app.status === 'Disetujui') badgeClass = 'badge-approved';
+      if (app.status === 'Ditolak') badgeClass = 'badge-rejected';
+
+      body.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; background:#FFF9FB; padding:1.2rem; border-radius:var(--radius-md); border:1px solid #F5DDE5;">
+          <div style="display:flex; align-items:center; gap:1rem;">
+            <img src="${app.petImage}" alt="${app.petName}" style="width:60px; height:60px; border-radius:12px; object-fit:cover;">
+            <div>
+              <h4 style="font-size:1.15rem; margin-bottom:0.15rem;">Hewan Target: ${app.petName} (${app.petSpecies})</h4>
+              <small style="color:var(--text-muted);">ID Berkas: <code>${app.id}</code> • Diajukan: ${app.appliedAt}</small>
+            </div>
+          </div>
+          <div>
+            <span class="badge ${badgeClass}" style="font-size:0.9rem;">Status: ${app.status}</span>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; font-size:0.9rem; margin-bottom:1.2rem;">
+          <div><strong>Nama Pemohon:</strong> ${app.userName}</div>
+          <div><strong>Email:</strong> ${app.userEmail}</div>
+          <div><strong>Nomor WhatsApp:</strong> ${app.userPhone}</div>
+          <div><strong>Pekerjaan:</strong> ${app.occupation}</div>
+        </div>
+
+        <div style="font-size:0.9rem; margin-bottom:0.8rem;">
+          <strong>Alamat Domisili:</strong>
+          <p style="color:var(--text-muted); margin-top:0.2rem;">${app.address}</p>
+        </div>
+
+        <div style="font-size:0.9rem; margin-bottom:0.8rem;">
+          <strong>Jenis Tempat Tinggal:</strong>
+          <p style="color:var(--text-muted); margin-top:0.2rem;">${app.housingType}</p>
+        </div>
+
+        <div style="font-size:0.9rem; margin-bottom:0.8rem;">
+          <strong>Pengalaman Memelihara Hewan:</strong>
+          <p style="color:var(--text-muted); margin-top:0.2rem;">${app.petExperience}</p>
+        </div>
+
+        <div style="font-size:0.9rem; margin-bottom:1.2rem;">
+          <strong>Alasan Mengadopsi:</strong>
+          <p style="color:var(--text-muted); margin-top:0.2rem; line-height:1.6; background:#F8FAFC; padding:0.75rem; border-radius:8px;">"${app.adoptionReason}"</p>
+        </div>
+
+        <div class="form-group" style="margin-top:1.25rem;">
+          <label class="form-label" for="modal-admin-notes">
+            <i class="fa-solid fa-pen-nib" style="color:var(--primary)"></i> Catatan Keputusan / Alasan (Dapat Dilihat Pemohon)
+          </label>
+          <textarea id="modal-admin-notes" class="form-control" rows="2" placeholder="Tuliskan catatan wawancara atau alasan persetujuan/penolakan...">${app.adminNotes || ''}</textarea>
+        </div>
+      `;
+
+      document.getElementById('review-app-modal').classList.add('active');
+    }
+
+    function closeReviewModal() {
+      document.getElementById('review-app-modal').classList.remove('active');
+    }
+
+    function updateStatusFromModal(newStatus) {
+      if (!activeAppId) return;
+
+      const notes = document.getElementById('modal-admin-notes').value.trim();
+
+      if (confirm(`Apakah Anda yakin ingin mengubah status pengajuan ini menjadi "${newStatus}"?`)) {
+        DB.updateApplicationStatus(activeAppId, newStatus, notes);
+
+        showToast('Status Diperbarui', `Status pengajuan telah diubah menjadi "${newStatus}".`, 'success');
+        closeReviewModal();
+        filterAppsTable();
+      }
+    }
+  </script>
+</body>
+</html>

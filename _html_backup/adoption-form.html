@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulir Pengajuan Adopsi - PawMate</title>
+  <meta name="description" content="Formulir resmi pengajuan adopsi hewan PawMate. Isi data diri dan komitmen perawatan untuk menyambut sahabat baru.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    .form-page-layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 2.5rem;
+      align-items: start;
+      margin-top: 1.5rem;
+      margin-bottom: 5rem;
+    }
+
+    .form-container-card {
+      background: #fff;
+      border-radius: var(--radius-xl);
+      padding: 2.8rem;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-light);
+    }
+
+    .pet-summary-sticky {
+      position: sticky;
+      top: 100px;
+      background: #fff;
+      border-radius: var(--radius-xl);
+      padding: 1.75rem;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-light);
+    }
+
+    .pet-summary-img {
+      width: 100%;
+      height: 220px;
+      border-radius: var(--radius-lg);
+      object-fit: cover;
+      margin-bottom: 1.25rem;
+    }
+
+    .form-section-title {
+      font-size: 1.25rem;
+      padding-bottom: 0.6rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid var(--primary-light);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--text-main);
+    }
+
+    .form-section-title i {
+      color: var(--primary);
+    }
+
+    .grid-2-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 992px) {
+      .form-page-layout {
+        grid-template-columns: 1fr;
+      }
+      .pet-summary-sticky {
+        position: static;
+        order: -1;
+      }
+      .grid-2-col {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Site Header / Navbar -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="logo-brand">
+        <div class="logo-icon-wrap">
+          <i class="fa-solid fa-paw"></i>
+        </div>
+        <span>PawMate</span>
+      </a>
+
+      <button class="nav-toggle-btn" id="mobile-menu-toggle" aria-label="Toggle navigation">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <ul class="nav-menu" id="nav-menu-list">
+        <li><a href="index.html" class="nav-link">Beranda</a></li>
+        <li><a href="animals.html" class="nav-link">Hewan</a></li>
+        <li><a href="index.html#about" class="nav-link">Tentang Kami</a></li>
+        <li><a href="index.html#steps" class="nav-link">Alur Adopsi</a></li>
+        <li><a href="user-dashboard.html" class="nav-link">Dashboard Saya</a></li>
+      </ul>
+
+      <div class="nav-actions" id="navbar-auth-actions"></div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 2rem;">
+    <!-- Breadcrumb -->
+    <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+      <a href="index.html"><i class="fa-solid fa-house"></i> Beranda</a>
+      <span>/</span>
+      <a href="animals.html">Daftar Hewan</a>
+      <span>/</span>
+      <span style="color: var(--primary); font-weight: 700;">Formulir Pengajuan Adopsi</span>
+    </div>
+
+    <!-- Alert Banner if user already has pending application -->
+    <div id="duplicate-warning-banner" style="display:none; background:#FEF3C7; border:1px solid #FCD34D; color:#92400E; padding:1.2rem 1.5rem; border-radius:var(--radius-lg); margin-bottom:1.75rem;">
+      <div style="display:flex; align-items:center; gap:0.8rem;">
+        <i class="fa-solid fa-circle-exclamation" style="font-size:1.4rem;"></i>
+        <div>
+          <strong style="display:block; font-size:1rem;">Anda sudah memiliki pengajuan aktif untuk hewan ini!</strong>
+          <span style="font-size:0.9rem;">Status pengajuan sebelumnya masih dalam tahap pemeriksaan. Anda dapat memantau statusnya di <a href="user-dashboard.html" style="text-decoration:underline; font-weight:700;">Dashboard Saya</a>.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-page-layout">
+      <!-- Main Form Area -->
+      <div class="form-container-card">
+        <div style="margin-bottom: 2rem;">
+          <h1 style="font-size: 2.1rem; margin-bottom: 0.5rem;">Formulir Pengajuan Adopsi</h1>
+          <p style="color: var(--text-muted); font-size: 0.98rem;">
+            Mohon isi informasi berikut dengan jujur dan lengkap. Data ini akan membantu kami memastikan kenyamanan dan keamanan anabul di tempat tinggal barunya.
+          </p>
+        </div>
+
+        <form id="adoption-application-form" onsubmit="handleFormPreSubmit(event)">
+          <!-- Section 1: Data Diri -->
+          <div class="form-section-title">
+            <i class="fa-solid fa-user"></i> 1. Informasi Data Pemohon
+          </div>
+
+          <div class="grid-2-col">
+            <div class="form-group">
+              <label class="form-label" for="applicant-name">Nama Lengkap <span class="required">*</span></label>
+              <input type="text" id="applicant-name" class="form-control" placeholder="Contoh: Rista Purnamasari" required>
+              <div class="form-error" id="err-applicant-name">Nama wajib diisi.</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="applicant-email">Alamat Email Aktif <span class="required">*</span></label>
+              <input type="email" id="applicant-email" class="form-control" placeholder="nama@email.com" required>
+              <div class="form-error" id="err-applicant-email">Email tidak valid.</div>
+            </div>
+          </div>
+
+          <div class="grid-2-col">
+            <div class="form-group">
+              <label class="form-label" for="applicant-phone">Nomor WhatsApp Aktif <span class="required">*</span></label>
+              <input type="tel" id="applicant-phone" class="form-control" placeholder="Contoh: 081234567890" required>
+              <div class="form-hint">Digunakan admin untuk konfirmasi wawancara & jadwal penjemputan.</div>
+              <div class="form-error" id="err-applicant-phone">Nomor WhatsApp wajib diisi (minimal 9 digit).</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="applicant-occupation">Pekerjaan / Aktivitas Harian <span class="required">*</span></label>
+              <input type="text" id="applicant-occupation" class="form-control" placeholder="Contoh: Karyawan Swasta / WFH / Wirausaha" required>
+              <div class="form-error" id="err-applicant-occupation">Pekerjaan wajib diisi.</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="applicant-address">Alamat Lengkap Domisili <span class="required">*</span></label>
+            <textarea id="applicant-address" class="form-control" rows="2" placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, kecamatan, kota" required></textarea>
+            <div class="form-error" id="err-applicant-address">Alamat lengkap wajib diisi.</div>
+          </div>
+
+          <!-- Section 2: Lingkungan Tempat Tinggal -->
+          <div class="form-section-title" style="margin-top: 2.2rem;">
+            <i class="fa-solid fa-house-chimney"></i> 2. Kondisi Tempat Tinggal & Pengalaman
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="applicant-housing">Jenis Tempat Tinggal <span class="required">*</span></label>
+            <select id="applicant-housing" class="form-control" required>
+              <option value="">-- Pilih Jenis Tempat Tinggal --</option>
+              <option value="Rumah Pribadi dengan Halaman Berpagar">Rumah Pribadi dengan Halaman Berpagar</option>
+              <option value="Rumah Pribadi tanpa Halaman">Rumah Pribadi tanpa Halaman</option>
+              <option value="Apartemen (Pet-Friendly)">Apartemen (Pet-Friendly)</option>
+              <option value="Rumah Sewa / Kontrakan (Diizinkan Pemilik)">Rumah Sewa / Kontrakan (Diizinkan Pemilik)</option>
+            </select>
+            <div class="form-error" id="err-applicant-housing">Silakan pilih jenis tempat tinggal.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="applicant-experience">Pengalaman Memelihara Hewan <span class="required">*</span></label>
+            <textarea id="applicant-experience" class="form-control" rows="2" placeholder="Ceritakan riwayat hewan peliharaan Anda sebelumnya atau saat ini..." required></textarea>
+            <div class="form-error" id="err-applicant-experience">Pengalaman memelihara wajib diisi (tulis 'Pemula' jika baru pertama kali).</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="applicant-reason">Alasan Mengadopsi Hewan Ini <span class="required">*</span></label>
+            <textarea id="applicant-reason" class="form-control" rows="3" placeholder="Mengapa Anda tertarik pada hewan ini? Apa harapan Anda dalam merawatnya?" required></textarea>
+            <div class="form-error" id="err-applicant-reason">Alasan adopsi wajib diisi dengan jelas.</div>
+          </div>
+
+          <!-- Section 3: Persetujuan Komitmen -->
+          <div class="form-section-title" style="margin-top: 2.2rem;">
+            <i class="fa-solid fa-shield-heart"></i> 3. Pernyataan & Komitmen Perawatan
+          </div>
+
+          <div class="form-group" style="background:#FFF9FB; padding:1.25rem; border-radius:var(--radius-md); border:1px solid #FADEE7;">
+            <label class="checkbox-label">
+              <input type="checkbox" id="applicant-commitment" required>
+              <span style="font-size:0.92rem; line-height:1.5;">
+                <strong>Saya berkomitmen penuh</strong> untuk merawat hewan ini dengan penuh kasih sayang, menyediakan makanan bergizi, tempat tinggal aman, perawatan medis/vaksinasi rutin, dan tidak akan menelantarkan atau memperjualbelikannya kembali. <span class="required">*</span>
+              </span>
+            </label>
+            <div class="form-error" id="err-applicant-commitment">Anda wajib menyetujui komitmen perawatan untuk melanjutkan.</div>
+          </div>
+
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:2.5rem; gap:1rem; flex-wrap:wrap;">
+            <a href="animals.html" class="btn btn-outline">
+              <i class="fa-solid fa-arrow-left"></i> Batal & Kembali
+            </a>
+            <button type="submit" id="btn-submit-app" class="btn btn-primary btn-lg">
+              <i class="fa-solid fa-paper-plane"></i> Tinjau & Kirim Pengajuan
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Pet Summary Sticky Card -->
+      <div class="pet-summary-sticky" id="pet-summary-sidebar">
+        <h3 style="font-size:1.15rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
+          <i class="fa-solid fa-paw" style="color:var(--primary)"></i> Calon Sahabatmu
+        </h3>
+        <div id="pet-summary-content">
+          <p style="color:var(--text-muted); font-size:0.9rem;">Memuat data hewan...</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Confirmation Modal -->
+  <div class="modal-backdrop" id="confirmation-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-circle-question" style="color:var(--primary)"></i> Konfirmasi Pengajuan Adopsi</h3>
+        <button class="modal-close-btn" onclick="closeConfirmationModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:1.25rem; color:var(--text-muted);">
+          Pastikan seluruh informasi data diri Anda sudah benar sebelum dikirimkan ke tim admin PawMate:
+        </p>
+        <div style="background:#FFF9FB; border-radius:var(--radius-md); padding:1.25rem; border:1px solid #F8DFE7; font-size:0.92rem; display:flex; flex-direction:column; gap:0.6rem;">
+          <div><strong>Hewan yang Diadopsi:</strong> <span id="confirm-pet-name">-</span></div>
+          <div><strong>Nama Pemohon:</strong> <span id="confirm-user-name">-</span></div>
+          <div><strong>WhatsApp:</strong> <span id="confirm-user-phone">-</span></div>
+          <div><strong>Email:</strong> <span id="confirm-user-email">-</span></div>
+          <div><strong>Jenis Tempat Tinggal:</strong> <span id="confirm-user-housing">-</span></div>
+        </div>
+        <p style="margin-top:1.25rem; font-size:0.88rem; color:#64748B;">
+          * Pengajuan akan masuk dengan status <strong>Menunggu</strong> dan diproses dalam 1x24 jam oleh shelter.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeConfirmationModal()">Ubah Kembali</button>
+        <button class="btn btn-primary" onclick="executeSubmitApplication()">
+          <i class="fa-solid fa-check"></i> Ya, Kirim Pengajuan Sekarang
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top:none; padding-top:0;">
+        <div class="logo-brand" style="color:white; font-size:1.3rem;">
+          <div class="logo-icon-wrap" style="width:34px; height:34px; font-size:1rem;">
+            <i class="fa-solid fa-paw"></i>
+          </div>
+          <span>PawMate</span>
+        </div>
+        <p>&copy; 2026 PawMate. Platform Adopsi Hewan Terpercaya.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    let selectedPet = null;
+    let pendingFormData = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const petId = urlParams.get('petId');
+
+      if (!petId) {
+        showToast('Hewan Belum Dipilih', 'Silakan pilih hewan yang ingin diadopsi dari katalog terlebih dahulu.', 'error');
+        setTimeout(() => window.location.href = 'animals.html', 1500);
+        return;
+      }
+
+      selectedPet = DB.getPetById(petId);
+      if (!selectedPet) {
+        showToast('Hewan Tidak Ditemukan', 'Data hewan tidak tersedia.', 'error');
+        setTimeout(() => window.location.href = 'animals.html', 1500);
+        return;
+      }
+
+      renderPetSummary(selectedPet);
+      prefillCurrentUserData();
+      checkDuplicateApplication();
+    });
+
+    function renderPetSummary(pet) {
+      const summaryEl = document.getElementById('pet-summary-content');
+      summaryEl.innerHTML = `
+        <img src="${pet.image}" alt="${pet.name}" class="pet-summary-img" onerror="this.src='https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80'">
+        <h4 style="font-size:1.3rem; margin-bottom:0.25rem;">${pet.name}</h4>
+        <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:0.8rem;">
+          ${pet.breed || pet.species} • ${pet.age} • ${pet.gender}
+        </p>
+        <div style="display:flex; flex-direction:column; gap:0.4rem; font-size:0.85rem; color:var(--text-muted); padding-top:0.75rem; border-top:1px dashed #F1D9E2;">
+          <div><i class="fa-solid fa-location-dot" style="color:var(--primary); width:18px;"></i> ${pet.location}</div>
+          <div><i class="fa-solid fa-shield-virus" style="color:var(--primary); width:18px;"></i> ${pet.vaccinated || 'Vaksin Lengkap'}</div>
+          <div><i class="fa-solid fa-circle-info" style="color:var(--primary); width:18px;"></i> Status: <strong style="color:var(--text-main);">${pet.status}</strong></div>
+        </div>
+      `;
+    }
+
+    function prefillCurrentUserData() {
+      const user = DB.getCurrentUser();
+      if (user) {
+        const nameInput = document.getElementById('applicant-name');
+        const emailInput = document.getElementById('applicant-email');
+        const phoneInput = document.getElementById('applicant-phone');
+        const addrInput = document.getElementById('applicant-address');
+        const occInput = document.getElementById('applicant-occupation');
+
+        if (nameInput && user.name) nameInput.value = user.name;
+        if (emailInput && user.email) emailInput.value = user.email;
+        if (phoneInput && user.phone) phoneInput.value = user.phone;
+        if (addrInput && user.address) addrInput.value = user.address;
+        if (occInput && user.occupation) occInput.value = user.occupation;
+      }
+    }
+
+    function checkDuplicateApplication() {
+      const user = DB.getCurrentUser();
+      const warningBanner = document.getElementById('duplicate-warning-banner');
+      const submitBtn = document.getElementById('btn-submit-app');
+
+      if (user && selectedPet) {
+        const hasActive = DB.hasActiveApplication(user.id, selectedPet.id);
+        if (hasActive) {
+          warningBanner.style.display = 'block';
+          submitBtn.disabled = true;
+          submitBtn.classList.add('disabled');
+          submitBtn.innerHTML = '<i class="fa-solid fa-clock"></i> Pengajuan Sedang Diproses';
+        }
+      }
+    }
+
+    function handleFormPreSubmit(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('applicant-name').value.trim();
+      const email = document.getElementById('applicant-email').value.trim();
+      const phone = document.getElementById('applicant-phone').value.trim();
+      const occupation = document.getElementById('applicant-occupation').value.trim();
+      const address = document.getElementById('applicant-address').value.trim();
+      const housing = document.getElementById('applicant-housing').value;
+      const experience = document.getElementById('applicant-experience').value.trim();
+      const reason = document.getElementById('applicant-reason').value.trim();
+      const commitment = document.getElementById('applicant-commitment').checked;
+
+      // Reset errors
+      document.querySelectorAll('.form-error').forEach(el => el.classList.remove('visible'));
+
+      let isValid = true;
+      if (!name) {
+        document.getElementById('err-applicant-name').classList.add('visible');
+        isValid = false;
+      }
+      if (!email || !email.includes('@')) {
+        document.getElementById('err-applicant-email').classList.add('visible');
+        isValid = false;
+      }
+      if (!phone || phone.length < 9) {
+        document.getElementById('err-applicant-phone').classList.add('visible');
+        isValid = false;
+      }
+      if (!occupation) {
+        document.getElementById('err-applicant-occupation').classList.add('visible');
+        isValid = false;
+      }
+      if (!address) {
+        document.getElementById('err-applicant-address').classList.add('visible');
+        isValid = false;
+      }
+      if (!housing) {
+        document.getElementById('err-applicant-housing').classList.add('visible');
+        isValid = false;
+      }
+      if (!experience) {
+        document.getElementById('err-applicant-experience').classList.add('visible');
+        isValid = false;
+      }
+      if (!reason) {
+        document.getElementById('err-applicant-reason').classList.add('visible');
+        isValid = false;
+      }
+      if (!commitment) {
+        document.getElementById('err-applicant-commitment').classList.add('visible');
+        isValid = false;
+      }
+
+      if (!isValid) {
+        showToast('Periksa Isian Formulir', 'Mohon lengkapi semua data wajib yang ditandai bintang merah.', 'error');
+        return;
+      }
+
+      pendingFormData = {
+        name, email, phone, occupation, address, housing, experience, reason, commitment
+      };
+
+      // Fill Confirmation Modal
+      document.getElementById('confirm-pet-name').textContent = selectedPet.name;
+      document.getElementById('confirm-user-name').textContent = name;
+      document.getElementById('confirm-user-phone').textContent = phone;
+      document.getElementById('confirm-user-email').textContent = email;
+      document.getElementById('confirm-user-housing').textContent = housing;
+
+      // Open Modal
+      document.getElementById('confirmation-modal').classList.add('active');
+    }
+
+    function closeConfirmationModal() {
+      document.getElementById('confirmation-modal').classList.remove('active');
+    }
+
+    function executeSubmitApplication() {
+      closeConfirmationModal();
+
+      let user = DB.getCurrentUser();
+      // If user is not logged in, auto-create a user session so they can track it in dashboard!
+      if (!user) {
+        user = {
+          id: 'usr-' + Date.now(),
+          name: pendingFormData.name,
+          email: pendingFormData.email,
+          phone: pendingFormData.phone,
+          password: 'demo',
+          role: 'user',
+          registeredAt: new Date().toISOString().slice(0, 10),
+          address: pendingFormData.address,
+          occupation: pendingFormData.occupation
+        };
+        DB.saveUser(user);
+        DB.setCurrentUser(user);
+      }
+
+      // Check duplicate again
+      if (DB.hasActiveApplication(user.id, selectedPet.id)) {
+        showToast('Pengajuan Sudah Ada', 'Anda sudah memiliki pengajuan yang sedang diproses untuk hewan ini.', 'error');
+        return;
+      }
+
+      const now = new Date();
+      const dateFormatted = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+      const newApp = {
+        id: 'app-' + Math.floor(1000 + Math.random() * 9000),
+        userId: user.id,
+        userName: pendingFormData.name,
+        userEmail: pendingFormData.email,
+        userPhone: pendingFormData.phone,
+        petId: selectedPet.id,
+        petName: selectedPet.name,
+        petSpecies: selectedPet.species,
+        petImage: selectedPet.image,
+        address: pendingFormData.address,
+        occupation: pendingFormData.occupation,
+        housingType: pendingFormData.housing,
+        petExperience: pendingFormData.experience,
+        adoptionReason: pendingFormData.reason,
+        commitmentAgreed: pendingFormData.commitment,
+        status: 'Menunggu', // Default status: Menunggu
+        adminNotes: 'Menunggu review awal berkas oleh admin shelter.',
+        appliedAt: dateFormatted
+      };
+
+      DB.saveApplication(newApp);
+
+      showToast('Pengajuan Berhasil!', `Pengajuan adopsi untuk ${selectedPet.name} telah dikirimkan ke admin.`, 'success');
+
+      setTimeout(() => {
+        window.location.href = 'user-dashboard.html';
+      }, 1500);
+    }
+  </script>
+</body>
+</html>

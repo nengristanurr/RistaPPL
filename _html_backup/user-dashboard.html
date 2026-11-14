@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Pengguna - PawMate</title>
+  <meta name="description" content="Dashboard pengguna PawMate: pantau status permohonan adopsi, kelola profil, dan hewan favorit.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 2.2rem;
+      align-items: start;
+      margin-top: 1.5rem;
+      margin-bottom: 5rem;
+    }
+
+    .profile-card {
+      background: #fff;
+      border-radius: var(--radius-xl);
+      padding: 2.2rem 1.8rem;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
+      text-align: center;
+    }
+
+    .user-avatar-lg {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, #FF8FAB 100%);
+      color: white;
+      font-size: 2.4rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      box-shadow: 0 8px 20px rgba(243, 107, 145, 0.3);
+    }
+
+    .dash-tabs-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1.8rem;
+      text-align: left;
+    }
+
+    .dash-tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.85rem 1.2rem;
+      border-radius: var(--radius-pill);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      width: 100%;
+    }
+
+    .dash-tab-btn:hover {
+      background: var(--primary-lighter);
+      color: var(--primary);
+    }
+
+    .dash-tab-btn.active {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .dash-tab-btn .badge-count {
+      margin-left: auto;
+      background: white;
+      padding: 0.15rem 0.6rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      color: var(--text-main);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .content-panel {
+      background: #fff;
+      border-radius: var(--radius-xl);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-light);
+    }
+
+    .app-card-item {
+      background: #FFF9FB;
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      border: 1px solid #F5DDE5;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      transition: all var(--transition-fast);
+    }
+
+    .app-card-item:hover {
+      background: #fff;
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .app-pet-thumb {
+      width: 80px;
+      height: 80px;
+      border-radius: var(--radius-md);
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .app-details {
+      flex-grow: 1;
+    }
+
+    @media (max-width: 992px) {
+      .dashboard-layout {
+        grid-template-columns: 1fr;
+      }
+      .app-card-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Site Header / Navbar -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="logo-brand">
+        <div class="logo-icon-wrap">
+          <i class="fa-solid fa-paw"></i>
+        </div>
+        <span>PawMate</span>
+      </a>
+
+      <button class="nav-toggle-btn" id="mobile-menu-toggle" aria-label="Toggle navigation">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <ul class="nav-menu" id="nav-menu-list">
+        <li><a href="index.html" class="nav-link">Beranda</a></li>
+        <li><a href="animals.html" class="nav-link">Hewan</a></li>
+        <li><a href="index.html#about" class="nav-link">Tentang Kami</a></li>
+        <li><a href="index.html#steps" class="nav-link">Alur Adopsi</a></li>
+        <li><a href="user-dashboard.html" class="nav-link active">Dashboard Saya</a></li>
+      </ul>
+
+      <div class="nav-actions" id="navbar-auth-actions"></div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 2rem;">
+    <!-- Welcome Header Banner -->
+    <div style="background: linear-gradient(135deg, #FFE7EF 0%, #FFF5F8 100%); border-radius: var(--radius-xl); padding: 2rem 2.5rem; margin-bottom: 2rem; border: 1px solid #FCD3E1; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1.25rem;">
+      <div>
+        <span class="badge badge-tag" style="background:#fff; margin-bottom:0.4rem;">
+          <i class="fa-solid fa-sparkles"></i> Member Area
+        </span>
+        <h1 style="font-size: 2rem; margin-bottom: 0.35rem;">Halo, <span id="welcome-user-name">Pencinta Hewan</span>! 👋</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+          Kelola riwayat pengajuan adopsi dan periksa status respon dari shelter secara berkala.
+        </p>
+      </div>
+      <div>
+        <a href="animals.html" class="btn btn-primary">
+          <i class="fa-solid fa-magnifying-glass"></i> Jelajahi Hewan Lain
+        </a>
+      </div>
+    </div>
+
+    <div class="dashboard-layout">
+      <!-- Left Sidebar: Profile & Tab Switcher -->
+      <aside>
+        <div class="profile-card">
+          <div class="user-avatar-lg" id="profile-avatar-char">U</div>
+          <h3 id="profile-display-name" style="font-size:1.35rem; margin-bottom:0.25rem;">Nama Pengguna</h3>
+          <p id="profile-display-email" style="color:var(--text-muted); font-size:0.88rem; margin-bottom:0.75rem;">email@example.com</p>
+          <span class="badge badge-tag" id="profile-display-role"><i class="fa-solid fa-paw"></i> Adopter Terdaftar</span>
+
+          <div style="margin-top:1.25rem; padding-top:1.25rem; border-top:1px dashed #F1D9E2; text-align:left; font-size:0.86rem; color:var(--text-muted);">
+            <div style="margin-bottom:0.4rem;"><i class="fa-solid fa-phone" style="width:20px; color:var(--primary);"></i> <span id="profile-display-phone">-</span></div>
+            <div style="margin-bottom:0.4rem;"><i class="fa-solid fa-briefcase" style="width:20px; color:var(--primary);"></i> <span id="profile-display-occ">-</span></div>
+            <div><i class="fa-solid fa-location-dot" style="width:20px; color:var(--primary);"></i> <span id="profile-display-addr">-</span></div>
+          </div>
+
+          <button class="btn btn-outline btn-sm" onclick="openEditProfileModal()" style="width:100%; margin-top:1.25rem;">
+            <i class="fa-solid fa-user-pen"></i> Edit Profil Saya
+          </button>
+
+          <!-- Tab Navigation -->
+          <div class="dash-tabs-nav">
+            <button class="dash-tab-btn active" id="tab-btn-applications" onclick="switchDashboardTab('applications')">
+              <i class="fa-solid fa-file-lines"></i> Riwayat Pengajuan
+              <span class="badge-count" id="badge-app-count">0</span>
+            </button>
+            <button class="dash-tab-btn" id="tab-btn-favorites" onclick="switchDashboardTab('favorites')">
+              <i class="fa-solid fa-heart"></i> Hewan Favorit
+              <span class="badge-count" id="badge-fav-count">0</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Right Content Panel -->
+      <div class="content-panel">
+        <!-- Tab 1: Riwayat Pengajuan Adopsi -->
+        <div id="tab-content-applications">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.5rem; flex-wrap:wrap; gap:0.5rem;">
+            <div>
+              <h2 style="font-size:1.5rem; margin-bottom:0.25rem;">Pengajuan Adopsi Saya</h2>
+              <p style="color:var(--text-muted); font-size:0.9rem;">Berikut adalah status terkini dari setiap formulir yang telah Anda kirimkan.</p>
+            </div>
+          </div>
+
+          <div id="user-applications-list">
+            <!-- Injected by JavaScript -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Hewan Favorit -->
+        <div id="tab-content-favorites" style="display:none;">
+          <div style="margin-bottom:1.5rem;">
+            <h2 style="font-size:1.5rem; margin-bottom:0.25rem;">Hewan Favorit Tersimpan</h2>
+            <p style="color:var(--text-muted); font-size:0.9rem;">Daftar anabul yang telah Anda simpan ke wishlist untuk dipertimbangkan.</p>
+          </div>
+
+          <div class="pets-grid" id="user-favorites-grid">
+            <!-- Injected by JavaScript -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Edit Profile Modal -->
+  <div class="modal-backdrop" id="edit-profile-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-pen" style="color:var(--primary)"></i> Perbarui Informasi Profil</h3>
+        <button class="modal-close-btn" onclick="closeEditProfileModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="handleSaveProfile(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="edit-name">Nama Lengkap</label>
+            <input type="text" id="edit-name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-phone">Nomor WhatsApp</label>
+            <input type="tel" id="edit-phone" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-occupation">Pekerjaan / Aktivitas</label>
+            <input type="text" id="edit-occupation" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="edit-address">Alamat Domisili</label>
+            <textarea id="edit-address" class="form-control" rows="2" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeEditProfileModal()">Batal</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Application Detail Modal -->
+  <div class="modal-backdrop" id="app-detail-modal">
+    <div class="modal-card" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 id="modal-app-title"><i class="fa-solid fa-file-invoice" style="color:var(--primary)"></i> Detail Pengajuan</h3>
+        <button class="modal-close-btn" onclick="closeAppDetailModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body" id="modal-app-body">
+        <!-- Injected by JS -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeAppDetailModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top:none; padding-top:0;">
+        <div class="logo-brand" style="color:white; font-size:1.3rem;">
+          <div class="logo-icon-wrap" style="width:34px; height:34px; font-size:1rem;">
+            <i class="fa-solid fa-paw"></i>
+          </div>
+          <span>PawMate</span>
+        </div>
+        <p>&copy; 2026 PawMate. Platform Adopsi Hewan Terpercaya.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    let currentUser = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      currentUser = DB.getCurrentUser();
+      // Auto fallback to demo user if accessed directly for preview
+      if (!currentUser) {
+        currentUser = DB.getUserByEmail('rista@example.com');
+        if (currentUser) DB.setCurrentUser(currentUser);
+      }
+
+      if (!currentUser) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      renderProfileInfo();
+      renderUserApplications();
+      renderUserFavorites();
+    });
+
+    function renderProfileInfo() {
+      document.getElementById('welcome-user-name').textContent = currentUser.name.split(' ')[0];
+      document.getElementById('profile-display-name').textContent = currentUser.name;
+      document.getElementById('profile-display-email').textContent = currentUser.email;
+      document.getElementById('profile-display-phone').textContent = currentUser.phone || '081234567890';
+      document.getElementById('profile-display-occ').textContent = currentUser.occupation || 'Pecinta Hewan';
+      document.getElementById('profile-display-addr').textContent = currentUser.address || 'Jakarta, Indonesia';
+      document.getElementById('profile-avatar-char').textContent = currentUser.name.charAt(0).toUpperCase();
+    }
+
+    function switchDashboardTab(tabName) {
+      const appTab = document.getElementById('tab-content-applications');
+      const favTab = document.getElementById('tab-content-favorites');
+      const btnApp = document.getElementById('tab-btn-applications');
+      const btnFav = document.getElementById('tab-btn-favorites');
+
+      if (tabName === 'applications') {
+        appTab.style.display = 'block';
+        favTab.style.display = 'none';
+        btnApp.classList.add('active');
+        btnFav.classList.remove('active');
+      } else {
+        appTab.style.display = 'none';
+        favTab.style.display = 'block';
+        btnApp.classList.remove('active');
+        btnFav.classList.add('active');
+      }
+    }
+
+    function renderUserApplications() {
+      const listEl = document.getElementById('user-applications-list');
+      const apps = DB.getApplicationsByUserId(currentUser.id);
+      document.getElementById('badge-app-count').textContent = apps.length;
+
+      if (apps.length === 0) {
+        listEl.innerHTML = `
+          <div class="empty-state" style="padding: 3rem 1.5rem;">
+            <div class="empty-state-icon"><i class="fa-solid fa-file-circle-question"></i></div>
+            <h3>Belum Ada Pengajuan</h3>
+            <p>Anda belum pernah mengajukan adopsi hewan. Jelajahi anabul yang siap diadopsi sekarang juga!</p>
+            <a href="animals.html" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Cari Hewan</a>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = apps.map(app => {
+        let badgeClass = 'badge-pending';
+        let badgeIcon = 'fa-clock';
+        if (app.status === 'Dalam Proses') {
+          badgeClass = 'badge-process';
+          badgeIcon = 'fa-spinner fa-spin';
+        } else if (app.status === 'Disetujui') {
+          badgeClass = 'badge-approved';
+          badgeIcon = 'fa-circle-check';
+        } else if (app.status === 'Ditolak') {
+          badgeClass = 'badge-rejected';
+          badgeIcon = 'fa-circle-xmark';
+        }
+
+        return `
+          <div class="app-card-item">
+            <img src="${app.petImage}" alt="${app.petName}" class="app-pet-thumb" onerror="this.src='https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80'">
+            <div class="app-details">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:0.5rem; margin-bottom:0.35rem; flex-wrap:wrap;">
+                <h4 style="font-size:1.25rem;">Adopsi ${app.petName} (${app.petSpecies})</h4>
+                <span class="badge ${badgeClass}"><i class="fa-solid ${badgeIcon}"></i> ${app.status}</span>
+              </div>
+              <p style="font-size:0.86rem; color:var(--text-muted); margin-bottom:0.6rem;">
+                <i class="fa-regular fa-calendar"></i> Dikirim: ${app.appliedAt} • ID: <code>${app.id}</code>
+              </p>
+              ${app.adminNotes ? `
+                <div style="background:#FFF1F5; padding:0.6rem 0.9rem; border-radius:var(--radius-sm); font-size:0.85rem; color:#9E2A4B; margin-bottom:0.75rem; border-left:3px solid var(--primary);">
+                  <strong>Catatan Shelter:</strong> ${app.adminNotes}
+                </div>
+              ` : ''}
+              <div>
+                <button class="btn btn-secondary btn-sm" onclick="openAppDetailModal('${app.id}')">
+                  <i class="fa-solid fa-eye"></i> Lihat Detail Berkas
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderUserFavorites() {
+      const gridEl = document.getElementById('user-favorites-grid');
+      const favIds = DB.getFavorites();
+      document.getElementById('badge-fav-count').textContent = favIds.length;
+
+      const favPets = favIds.map(id => DB.getPetById(id)).filter(p => p !== null);
+
+      if (favPets.length === 0) {
+        gridEl.innerHTML = `
+          <div class="empty-state" style="grid-column: 1/-1; padding: 3rem 1.5rem;">
+            <div class="empty-state-icon"><i class="fa-regular fa-heart"></i></div>
+            <h3>Belum Ada Hewan Favorit</h3>
+            <p>Klik tombol hati pada kartu hewan untuk menyimpannya ke daftar favorit Anda.</p>
+            <a href="animals.html" class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Jelajahi Hewan</a>
+          </div>
+        `;
+        return;
+      }
+
+      gridEl.innerHTML = favPets.map(pet => createPetCardHTML(pet)).join('');
+    }
+
+    // Modal Details
+    function openAppDetailModal(appId) {
+      const app = DB.getApplicationById(appId);
+      if (!app) return;
+
+      const body = document.getElementById('modal-app-body');
+      body.innerHTML = `
+        <div style="display:flex; align-items:center; gap:1.25rem; margin-bottom:1.5rem; background:#FFF9FB; padding:1.2rem; border-radius:var(--radius-md); border:1px solid #F5DDE5;">
+          <img src="${app.petImage}" alt="${app.petName}" style="width:70px; height:70px; border-radius:12px; object-fit:cover;">
+          <div>
+            <h4 style="font-size:1.2rem; margin-bottom:0.2rem;">${app.petName} (${app.petSpecies})</h4>
+            <span class="badge ${app.status === 'Disetujui' ? 'badge-approved' : app.status === 'Ditolak' ? 'badge-rejected' : 'badge-pending'}">
+              Status: ${app.status}
+            </span>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; font-size:0.9rem; margin-bottom:1.25rem;">
+          <div><strong>ID Pengajuan:</strong> ${app.id}</div>
+          <div><strong>Tanggal Pengajuan:</strong> ${app.appliedAt}</div>
+          <div><strong>Nama Pemohon:</strong> ${app.userName}</div>
+          <div><strong>WhatsApp:</strong> ${app.userPhone}</div>
+          <div><strong>Email:</strong> ${app.userEmail}</div>
+          <div><strong>Pekerjaan:</strong> ${app.occupation}</div>
+        </div>
+
+        <div style="font-size:0.9rem; margin-bottom:1rem;">
+          <strong>Alamat Domisili:</strong>
+          <p style="color:var(--text-muted); margin-top:0.2rem;">${app.address}</p>
+        </div>
+
+        <div style="font-size:0.9rem; margin-bottom:1rem;">
+          <strong>Jenis Tempat Tinggal:</strong>
+          <p style="color:var(--text-muted); margin-top:0.2rem;">${app.housingType}</p>
+        </div>
+
+        <div style="font-size:0.9rem; margin-bottom:1rem;">
+          <strong>Pengalaman Memelihara:</strong>
+          <p style="color:var(--text-muted); margin-top:0.2rem;">${app.petExperience}</p>
+        </div>
+
+        <div style="font-size:0.9rem; margin-bottom:1rem;">
+          <strong>Alasan Adopsi:</strong>
+          <p style="color:var(--text-muted); margin-top:0.2rem;">${app.adoptionReason}</p>
+        </div>
+
+        ${app.adminNotes ? `
+          <div style="margin-top:1.25rem; padding:1rem; background:#FFF1F5; border-radius:var(--radius-md); border:1px solid #F5D0DD;">
+            <strong style="color:var(--primary);"><i class="fa-solid fa-message"></i> Catatan Evaluasi Admin:</strong>
+            <p style="color:var(--text-main); margin-top:0.35rem; font-size:0.92rem;">${app.adminNotes}</p>
+          </div>
+        ` : ''}
+      `;
+
+      document.getElementById('app-detail-modal').classList.add('active');
+    }
+
+    function closeAppDetailModal() {
+      document.getElementById('app-detail-modal').classList.remove('active');
+    }
+
+    // Edit Profile Modal
+    function openEditProfileModal() {
+      document.getElementById('edit-name').value = currentUser.name || '';
+      document.getElementById('edit-phone').value = currentUser.phone || '';
+      document.getElementById('edit-occupation').value = currentUser.occupation || '';
+      document.getElementById('edit-address').value = currentUser.address || '';
+      document.getElementById('edit-profile-modal').classList.add('active');
+    }
+
+    function closeEditProfileModal() {
+      document.getElementById('edit-profile-modal').classList.remove('active');
+    }
+
+    function handleSaveProfile(e) {
+      e.preventDefault();
+      currentUser.name = document.getElementById('edit-name').value.trim();
+      currentUser.phone = document.getElementById('edit-phone').value.trim();
+      currentUser.occupation = document.getElementById('edit-occupation').value.trim();
+      currentUser.address = document.getElementById('edit-address').value.trim();
+
+      DB.saveUser(currentUser);
+      DB.setCurrentUser(currentUser);
+
+      closeEditProfileModal();
+      renderProfileInfo();
+      updateNavbarAuth();
+      showToast('Profil Diperbarui', 'Informasi akun Anda berhasil disimpan.', 'success');
+    }
+  </script>
+</body>
+</html>

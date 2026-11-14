@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detail Hewan - PawMate</title>
+  <meta name="description" content="Informasi lengkap, karakter, status kesehatan, dan pengajuan adopsi hewan kesayangan di PawMate.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    .detail-layout {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 3.5rem;
+      align-items: start;
+      margin-top: 1.5rem;
+      margin-bottom: 5rem;
+    }
+
+    .detail-gallery-container {
+      position: sticky;
+      top: 100px;
+    }
+
+    .detail-main-img-wrap {
+      width: 100%;
+      height: 480px;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      border: 6px solid #fff;
+      background: #FFF1F5;
+      position: relative;
+    }
+
+    .detail-main-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .detail-thumbs-grid {
+      display: flex;
+      gap: 0.85rem;
+      margin-top: 1.25rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .thumb-item {
+      width: 90px;
+      height: 80px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      cursor: pointer;
+      border: 3px solid transparent;
+      opacity: 0.65;
+      transition: all var(--transition-fast);
+      flex-shrink: 0;
+      background: #fff;
+    }
+
+    .thumb-item.active, .thumb-item:hover {
+      border-color: var(--primary);
+      opacity: 1;
+      transform: translateY(-2px);
+    }
+
+    .thumb-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .detail-info-card {
+      background: #fff;
+      border-radius: var(--radius-xl);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-light);
+    }
+
+    .detail-header-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .detail-pet-name {
+      font-size: 2.4rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .detail-pet-sub {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.8rem;
+    }
+
+    .spec-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .spec-box {
+      background: var(--bg-surface);
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      text-align: center;
+      border: 1px solid var(--border-light);
+    }
+
+    .spec-box span {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .spec-box strong {
+      display: block;
+      font-size: 1.05rem;
+      color: var(--text-main);
+      margin-top: 0.2rem;
+    }
+
+    .info-section-block {
+      margin-bottom: 1.8rem;
+      padding-bottom: 1.6rem;
+      border-bottom: 1px dashed var(--border-color);
+    }
+
+    .info-section-block h3 {
+      font-size: 1.15rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-main);
+    }
+
+    .info-section-block h3 i {
+      color: var(--primary);
+    }
+
+    .health-pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .health-pill {
+      background: #ECFDF5;
+      color: #065F46;
+      border: 1px solid #A7F3D0;
+      padding: 0.4rem 0.9rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .action-cta-box {
+      margin-top: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 992px) {
+      .detail-layout {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+      .detail-gallery-container {
+        position: static;
+      }
+      .detail-main-img-wrap {
+        height: 380px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Site Header / Navbar -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="logo-brand">
+        <div class="logo-icon-wrap">
+          <i class="fa-solid fa-paw"></i>
+        </div>
+        <span>PawMate</span>
+      </a>
+
+      <button class="nav-toggle-btn" id="mobile-menu-toggle" aria-label="Toggle navigation">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <ul class="nav-menu" id="nav-menu-list">
+        <li><a href="index.html" class="nav-link">Beranda</a></li>
+        <li><a href="animals.html" class="nav-link active">Hewan</a></li>
+        <li><a href="index.html#about" class="nav-link">Tentang Kami</a></li>
+        <li><a href="index.html#steps" class="nav-link">Alur Adopsi</a></li>
+        <li><a href="user-dashboard.html" class="nav-link">Dashboard Saya</a></li>
+      </ul>
+
+      <div class="nav-actions" id="navbar-auth-actions"></div>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 2rem;">
+    <!-- Breadcrumb -->
+    <div style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+      <a href="index.html"><i class="fa-solid fa-house"></i> Beranda</a>
+      <span>/</span>
+      <a href="animals.html">Daftar Hewan</a>
+      <span>/</span>
+      <span id="breadcrumb-pet-name" style="color: var(--primary); font-weight: 700;">Memuat...</span>
+    </div>
+
+    <!-- Animal Detail View Container -->
+    <div id="pet-detail-container">
+      <!-- Injected by JavaScript -->
+      <div style="text-align: center; padding: 4rem;">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size: 2.5rem; color: var(--primary);"></i>
+        <p style="margin-top: 1rem; color: var(--text-muted);">Memuat informasi hewan...</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top:none; padding-top:0;">
+        <div class="logo-brand" style="color:white; font-size:1.3rem;">
+          <div class="logo-icon-wrap" style="width:34px; height:34px; font-size:1rem;">
+            <i class="fa-solid fa-paw"></i>
+          </div>
+          <span>PawMate</span>
+        </div>
+        <p>&copy; 2026 PawMate. Platform Adopsi Hewan Terpercaya.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const petId = urlParams.get('id');
+
+      if (!petId) {
+        renderNotFound('ID hewan tidak ditemukan.');
+        return;
+      }
+
+      const pet = DB.getPetById(petId);
+      if (!pet) {
+        renderNotFound('Hewan dengan ID tersebut tidak ditemukan di database.');
+        return;
+      }
+
+      renderPetDetail(pet);
+    });
+
+    function renderNotFound(message) {
+      const container = document.getElementById('pet-detail-container');
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <h3>Hewan Tidak Ditemukan</h3>
+          <p>${message}</p>
+          <a href="animals.html" class="btn btn-primary"><i class="fa-solid fa-arrow-left"></i> Kembali ke Katalog Hewan</a>
+        </div>
+      `;
+    }
+
+    function renderPetDetail(pet) {
+      document.getElementById('breadcrumb-pet-name').textContent = pet.name;
+      document.title = `${pet.name} - Adopsi di PawMate`;
+
+      const isFav = DB.isFavorite(pet.id);
+      const isAvailable = pet.status === 'Tersedia';
+
+      let statusBadge = '<span class="badge badge-approved"><i class="fa-solid fa-circle" style="font-size:0.5rem"></i> Tersedia untuk Diadopsi</span>';
+      if (pet.status === 'Dalam Proses') {
+        statusBadge = '<span class="badge badge-process"><i class="fa-solid fa-clock"></i> Dalam Proses Adopsi</span>';
+      } else if (pet.status === 'Sudah Diadopsi') {
+        statusBadge = '<span class="badge badge-rejected"><i class="fa-solid fa-house-heart"></i> Sudah Diadopsi</span>';
+      }
+
+      const gallery = pet.gallery && pet.gallery.length > 0 ? pet.gallery : [pet.image];
+
+      const html = `
+        <div class="detail-layout">
+          <!-- Left: Gallery -->
+          <div class="detail-gallery-container">
+            <div class="detail-main-img-wrap">
+              <img id="main-gallery-image" src="${gallery[0]}" alt="${pet.name}" onerror="this.src='https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80'">
+            </div>
+            
+            <div class="detail-thumbs-grid">
+              ${gallery.map((imgSrc, idx) => `
+                <div class="thumb-item ${idx === 0 ? 'active' : ''}" onclick="changeMainImage('${imgSrc}', this)">
+                  <img src="${imgSrc}" alt="Galeri ${pet.name} ${idx + 1}">
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Right: Pet Details & Actions -->
+          <div class="detail-info-card">
+            <div class="detail-header-meta">
+              ${statusBadge}
+              <button class="btn btn-outline btn-sm ${isFav ? 'active' : ''}" data-favorite-pet="${pet.id}" onclick="handleToggleFavorite('${pet.id}', event)">
+                <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-heart" style="${isFav ? 'color:#E11D48' : ''}"></i> 
+                ${isFav ? 'Tersimpan' : 'Simpan Favorit'}
+              </button>
+            </div>
+
+            <h1 class="detail-pet-name">${pet.name}</h1>
+            <div class="detail-pet-sub">
+              <span><i class="fa-solid fa-dna" style="color:var(--primary)"></i> ${pet.breed || pet.species}</span>
+              <span>•</span>
+              <span><i class="fa-solid fa-location-dot" style="color:var(--primary)"></i> ${pet.location}</span>
+            </div>
+
+            <!-- Quick Specs -->
+            <div class="spec-grid">
+              <div class="spec-box">
+                <span>Jenis Kelamin</span>
+                <strong>${pet.gender}</strong>
+              </div>
+              <div class="spec-box">
+                <span>Usia</span>
+                <strong>${pet.age}</strong>
+              </div>
+              <div class="spec-box">
+                <span>Ukuran</span>
+                <strong>${pet.size || 'Sedang'}</strong>
+              </div>
+            </div>
+
+            <!-- Karakter / Temperament -->
+            <div class="info-section-block">
+              <h3><i class="fa-solid fa-heart"></i> Karakter & Kepribadian</h3>
+              <div class="pet-tags-row">
+                ${(pet.temperament || ['Ramah', 'Lincah']).map(t => `<span class="pet-tag" style="font-size:0.85rem; padding:0.35rem 0.8rem;">${t}</span>`).join('')}
+              </div>
+              <p style="color:var(--text-muted); margin-top:0.75rem; line-height:1.7;">
+                ${pet.description}
+              </p>
+            </div>
+
+            <!-- Kesehatan -->
+            <div class="info-section-block">
+              <h3><i class="fa-solid fa-stethoscope"></i> Informasi Kesehatan & Medis</h3>
+              <div class="health-pill-list" style="margin-bottom:0.75rem;">
+                <span class="health-pill"><i class="fa-solid fa-circle-check"></i> ${pet.vaccinated || 'Vaksinasi Lengkap'}</span>
+                <span class="health-pill"><i class="fa-solid fa-shield-virus"></i> Bebas Parasit</span>
+                <span class="health-pill"><i class="fa-solid fa-scissors"></i> Steril</span>
+              </div>
+              <p style="font-size:0.92rem; color:var(--text-muted);">
+                ${pet.health || 'Kondisi fisik prima dan sehat.'}
+              </p>
+            </div>
+
+            <!-- Kebutuhan Perawatan -->
+            <div class="info-section-block">
+              <h3><i class="fa-solid fa-house-chimney"></i> Kebutuhan Perawatan & Rumah</h3>
+              <p style="font-size:0.92rem; color:var(--text-muted); line-height:1.6;">
+                ${pet.careNeeds || 'Memerlukan kasih sayang harian, lingkungan bersih, dan perhatian interaktif.'}
+              </p>
+            </div>
+
+            <!-- Call To Action -->
+            <div class="action-cta-box">
+              ${isAvailable ? `
+                <a href="adoption-form.html?petId=${pet.id}" class="btn btn-primary btn-lg" style="flex:1;">
+                  <i class="fa-solid fa-file-signature"></i> Ajukan Adopsi Sekarang
+                </a>
+              ` : `
+                <button class="btn btn-secondary btn-lg disabled" style="flex:1;" disabled title="Hewan tidak tersedia untuk adopsi baru">
+                  <i class="fa-solid fa-ban"></i> Pengajuan Tidak Tersedia (${pet.status})
+                </button>
+              `}
+              <a href="animals.html" class="btn btn-outline btn-lg" title="Kembali ke Katalog">
+                <i class="fa-solid fa-arrow-left"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('pet-detail-container').innerHTML = html;
+    }
+
+    function changeMainImage(src, thumbEl) {
+      const mainImg = document.getElementById('main-gallery-image');
+      if (mainImg) {
+        mainImg.src = src;
+      }
+      document.querySelectorAll('.thumb-item').forEach(el => el.classList.remove('active'));
+      if (thumbEl) {
+        thumbEl.classList.add('active');
+      }
+    }
+  </script>
+</body>
+</html>

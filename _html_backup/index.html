@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PawMate - Platform Adopsi Hewan Modern & Terpercaya</title>
+  <meta name="description" content="Temukan teman hidup baru di PawMate. Platform adopsi anjing dan kucing dengan proses mudah, aman, dan penuh kasih sayang.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <!-- Site Header / Navbar -->
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="index.html" class="logo-brand">
+        <div class="logo-icon-wrap">
+          <i class="fa-solid fa-paw"></i>
+        </div>
+        <span>PawMate</span>
+      </a>
+
+      <button class="nav-toggle-btn" id="mobile-menu-toggle" aria-label="Toggle navigation">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <ul class="nav-menu" id="nav-menu-list">
+        <li><a href="index.html" class="nav-link active">Beranda</a></li>
+        <li><a href="animals.html" class="nav-link">Hewan</a></li>
+        <li><a href="#about" class="nav-link">Tentang Kami</a></li>
+        <li><a href="#steps" class="nav-link">Alur Adopsi</a></li>
+        <li><a href="user-dashboard.html" class="nav-link">Dashboard Saya</a></li>
+      </ul>
+
+      <div class="nav-actions" id="navbar-auth-actions">
+        <!-- Injected dynamically by main.js based on auth state -->
+        <a href="login.html" class="btn btn-outline btn-sm">Masuk</a>
+        <a href="register.html" class="btn btn-primary btn-sm">Daftar</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-shape-1"></div>
+      <div class="hero-shape-2"></div>
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <div class="hero-badge-pill">
+            <i class="fa-solid fa-heart" style="color:var(--primary)"></i> Platform Adopsi #1 Terverifikasi
+          </div>
+          <h1 class="hero-title">
+            Temukan Teman Hidup Baru di <span class="highlight">PawMate</span>
+          </h1>
+          <p class="hero-desc">
+            Beri kesempatan kedua bagi anabul terlantar untuk menemukan rumah yang hangat dan penuh cinta. Setiap pelukan mengubah hidup mereka selamanya.
+          </p>
+
+          <div class="hero-buttons">
+            <a href="animals.html" class="btn btn-primary btn-lg">
+              <i class="fa-solid fa-magnifying-glass"></i> Temukan Sahabat
+            </a>
+            <a href="#steps" class="btn btn-secondary btn-lg">
+              <i class="fa-solid fa-circle-play"></i> Cara Adopsi
+            </a>
+          </div>
+
+          <div class="hero-stats-mini">
+            <div class="stat-item">
+              <h3 id="stat-adopted-count">120+</h3>
+              <p>Hewan Teradopsi</p>
+            </div>
+            <div class="stat-item">
+              <h3 id="stat-available-count">8+</h3>
+              <p>Siap Diadopsi</p>
+            </div>
+            <div class="stat-item">
+              <h3>100%</h3>
+              <p>Cinta & Vaksinasi</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="hero-visual-card">
+            <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1000&q=80" alt="Anjing dan Kucing Sahabat Bahagia PawMate">
+            <div class="floating-paw-bubble">
+              <i class="fa-solid fa-shield-cat"></i>
+              <div>
+                <strong>Kesehatan Terjamin</strong>
+                <span>Vaksinasi & Steril Lengkap</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Search Bar Section -->
+    <section class="container search-filter-section">
+      <div class="search-box-card">
+        <form id="hero-quick-search-form" onsubmit="handleHeroSearch(event)" class="search-filter-grid">
+          <div class="filter-group">
+            <label for="hero-search-input">Cari Nama atau Ras</label>
+            <div class="input-with-icon">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="hero-search-input" placeholder="Misal: Milo, Golden, Kucing Persia...">
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <label for="hero-species-select">Jenis Hewan</label>
+            <select id="hero-species-select">
+              <option value="all">Semua Jenis</option>
+              <option value="Anjing">Anjing 🐶</option>
+              <option value="Kucing">Kucing 🐱</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="hero-gender-select">Jenis Kelamin</label>
+            <select id="hero-gender-select">
+              <option value="all">Semua</option>
+              <option value="Jantan">Jantan</option>
+              <option value="Betina">Betina</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="hero-location-select">Lokasi</label>
+            <select id="hero-location-select">
+              <option value="all">Semua Lokasi</option>
+              <option value="Jakarta">Jakarta</option>
+              <option value="Bandung">Bandung</option>
+              <option value="Tangerang">Tangerang</option>
+              <option value="Bogor">Bogor</option>
+              <option value="Bekasi">Bekasi</option>
+              <option value="Depok">Depok</option>
+            </select>
+          </div>
+
+          <div class="filter-group" style="margin-top:auto;">
+            <button type="submit" class="btn btn-primary" style="height:48px; width:100%;">
+              <i class="fa-solid fa-filter"></i> Cari Sekarang
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Recommended Pets Section -->
+    <section class="container" style="padding: 4.5rem 0 3rem;">
+      <div class="section-header">
+        <span class="section-tag"><i class="fa-solid fa-paw"></i> Rekomendasi Pilihan</span>
+        <h2 class="section-title">Sahabat Siap Temani Harimu</h2>
+        <p class="section-subtitle">Hewan-hewan menggemaskan ini sudah diperiksa kesehatannya dan menanti keluarga barunya.</p>
+      </div>
+
+      <div class="pets-grid" id="recommended-pets-container">
+        <!-- Rendered by JS -->
+      </div>
+
+      <div style="text-align: center; margin-top: 1rem;">
+        <a href="animals.html" class="btn btn-primary btn-lg">
+          Lihat Semua Hewan Tersedia <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </section>
+
+    <!-- Keunggulan PawMate (About / Advantages) -->
+    <section class="features-section" id="about">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag"><i class="fa-solid fa-heart"></i> Mengapa PawMate?</span>
+          <h2 class="section-title">Keunggulan Layanan Kami</h2>
+          <p class="section-subtitle">Kami berdedikasi menciptakan hubungan yang harmonis dan aman antara pemilik dan hewan kesayangan.</p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon-wrap">
+              <i class="fa-solid fa-hand-holding-heart"></i>
+            </div>
+            <h3>Proses Adopsi Mudah</h3>
+            <p>Pengajuan formulir adopsi terpadu secara online tanpa birokrasi berbelit. Pantau proses persetujuan langsung dari dashboard akun Anda.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrap">
+              <i class="fa-solid fa-user-doctor"></i>
+            </div>
+            <h3>Kesejahteraan & Kesehatan</h3>
+            <p>Setiap anjing dan kucing telah menjalani pemeriksaan dokter hewan, vaksinasi esensial, sterilisasi, dan bebas penyakit menular.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrap">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <h3>Komunitas Penyayang</h3>
+            <p>Terhubung dengan ribuan pecinta hewan, shelter rekanan, dan panduan perawatan menyeluruh untuk adopsi yang sukses jangka panjang.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Langkah-langkah Adopsi -->
+    <section class="steps-section" id="steps">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag"><i class="fa-solid fa-route"></i> Alur Transparan</span>
+          <h2 class="section-title">4 Langkah Mudah Mengadopsi</h2>
+          <p class="section-subtitle">Hanya butuh beberapa langkah mudah untuk menyambut sahabat baru ke dalam pelukan keluarga.</p>
+        </div>
+
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <h3>Pilih Hewan</h3>
+            <p>Jelajahi katalog anjing & kucing, baca profil sifat, kebutuhan perawatan, dan galeri fotonya.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-icon"><i class="fa-solid fa-file-signature"></i></div>
+            <h3>Isi Formulir</h3>
+            <p>Lengkapi formulir pengajuan adopsi dengan data tempat tinggal dan kesiapan merawat.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-icon"><i class="fa-solid fa-clipboard-check"></i></div>
+            <h3>Verifikasi Admin</h3>
+            <p>Tim admin PawMate mereview kelayakan pengajuan untuk memastikan lingkungan yang aman bagi hewan.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">4</div>
+            <div class="step-icon"><i class="fa-solid fa-house-chimney-heart"></i></div>
+            <h3>Jemput Sahabatmu</h3>
+            <p>Setelah pengajuan disetujui, jadwalkan penjemputan dan bawa pulang anabul kesayanganmu ke rumah!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Banner -->
+    <section class="container">
+      <div class="cta-banner">
+        <div class="cta-content">
+          <h2>Siap Membuka Pintu Hatimu?</h2>
+          <p>Ratusan anabul menunggu belaian hangat dari Anda. Jadilah pahlawan bagi mereka hari ini.</p>
+        </div>
+        <div>
+          <a href="animals.html" class="btn btn-lg">
+            <i class="fa-solid fa-paw"></i> Mulai Adopsi Sekarang
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo-brand" style="color:white; margin-bottom: 0.8rem;">
+            <div class="logo-icon-wrap" style="transform:none;">
+              <i class="fa-solid fa-paw"></i>
+            </div>
+            <span>PawMate</span>
+          </div>
+          <p>
+            PawMate adalah platform adopsi hewan online yang didedikasikan untuk menghubungkan hewan shelter dengan keluarga penyayang yang penuh cinta.
+          </p>
+          <div class="social-links">
+            <a href="#" class="social-btn" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" class="social-btn" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="#" class="social-btn" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="#" class="social-btn" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navigasi Cepat</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Beranda</a></li>
+            <li><a href="animals.html">Daftar Hewan</a></li>
+            <li><a href="animals.html?species=Anjing">Adopsi Anjing</a></li>
+            <li><a href="animals.html?species=Kucing">Adopsi Kucing</a></li>
+            <li><a href="#steps">Alur Adopsi</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Area Pengguna</h4>
+          <ul class="footer-links">
+            <li><a href="login.html">Masuk Akun</a></li>
+            <li><a href="register.html">Pendaftaran Member</a></li>
+            <li><a href="user-dashboard.html">Dashboard Saya</a></li>
+            <li><a href="admin-dashboard.html">Portal Pengurus (Admin)</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Hubungi Kami</h4>
+          <div class="footer-contact-item">
+            <i class="fa-solid fa-location-dot"></i>
+            <span>Jl. Kasih Anabul No. 88, Kebayoran Baru, Jakarta Selatan</span>
+          </div>
+          <div class="footer-contact-item">
+            <i class="fa-solid fa-envelope"></i>
+            <span>halo@pawmate.id</span>
+          </div>
+          <div class="footer-contact-item">
+            <i class="fa-solid fa-phone"></i>
+            <span>+62 812-3456-7890 (WhatsApp)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 PawMate Indonesia. Hak cipta dilindungi undang-undang.</p>
+        <p>Dirancang dengan penuh <i class="fa-solid fa-heart" style="color:var(--primary)"></i> untuk hewan terlantar.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="assets/js/db.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const pets = DB.getPets();
+      // Render recommended pets (first 4 pets or available ones)
+      const container = document.getElementById('recommended-pets-container');
+      if (container) {
+        const recommended = pets.slice(0, 4);
+        container.innerHTML = recommended.map(pet => createPetCardHTML(pet)).join('');
+      }
+
+      // Update counters
+      const availablePets = pets.filter(p => p.status === 'Tersedia');
+      const adoptedCount = DB.getApplications().filter(a => a.status === 'Disetujui').length + 120;
+      
+      const availEl = document.getElementById('stat-available-count');
+      if (availEl) availEl.textContent = `${availablePets.length}+`;
+      
+      const adoptedEl = document.getElementById('stat-adopted-count');
+      if (adoptedEl) adoptedEl.textContent = `${adoptedCount}+`;
+    });
+
+    function handleHeroSearch(event) {
+      event.preventDefault();
+      const q = document.getElementById('hero-search-input').value.trim();
+      const species = document.getElementById('hero-species-select').value;
+      const gender = document.getElementById('hero-gender-select').value;
+      const loc = document.getElementById('hero-location-select').value;
+
+      const params = new URLSearchParams();
+      if (q) params.set('q', q);
+      if (species !== 'all') params.set('species', species);
+      if (gender !== 'all') params.set('gender', gender);
+      if (loc !== 'all') params.set('location', loc);
+
+      window.location.href = `animals.html?${params.toString()}`;
+    }
+  </script>
+</body>
+</html>
