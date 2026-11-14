@@ -1,20 +1,24 @@
 <?php
 /**
- * PawMate - Database Connection & Auto-Setup
- * Menggunakan PDO untuk koneksi aman ke MySQL di XAMPP
+ * PawMate - Database Connection & Multi-Environment Manager
+ * Mendukung:
+ * 1. MySQL Lokal XAMPP (Default)
+ * 2. Remote Cloud MySQL (TiDB, Aiven, Railway, PlanetScale via Environment Variables)
+ * 3. Serverless Vercel Preview (Fallback Otomatis ke SQLite jika belum ada cloud MySQL)
  */
 
-if (!defined('DB_HOST')) {
-    define('DB_HOST', 'localhost');
-    define('DB_PORT', 3306);
-    define('DB_NAME', 'pawmate_db');
-    define('DB_USER', 'root');
-    define('DB_PASS', '');
+function getDBConfig() {
+    return [
+        'host' => getenv('DB_HOST') ?: (getenv('MYSQLHOST') ?: 'localhost'),
+        'port' => getenv('DB_PORT') ?: (getenv('MYSQLPORT') ?: 3306),
+        'name' => getenv('DB_NAME') ?: (getenv('MYSQLDATABASE') ?: 'pawmate_db'),
+        'user' => getenv('DB_USER') ?: (getenv('MYSQLUSER') ?: 'root'),
+        'pass' => getenv('DB_PASS') ?: (getenv('MYSQLPASSWORD') ?: ''),
+    ];
 }
 
 /**
- * Mendapatkan instance koneksi PDO ke database MySQL
- * Otomatis membuat database dan tabel jika belum ada
+ * Mendapatkan instance koneksi PDO
  */
 function getDB() {
     static $pdo = null;
@@ -23,134 +27,210 @@ function getDB() {
         return $pdo;
     }
 
-    $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+    $config = getDBConfig();
     $options = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES   => false,
     ];
 
+    $isVercel = (bool)getenv('VERCEL');
+
+    // 1. Coba koneksi ke MySQL terlebih dahulu
     try {
-        $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
-        // Pastikan tabel sudah terbuat
-        ensureTablesExist($pdo);
+        $dsn = "mysql:host={$config['host']};port={$config['port']};dbname={$config['name']};charset=utf8mb4";
+        $pdo = new PDO($dsn, $config['user'], $config['pass'], $options);
+        ensureTablesExist($pdo, 'mysql');
+        return $pdo;
     } catch (PDOException $e) {
-        // Jika database belum ada (error 1049: Unknown database), buat otomatis
-        if ($e->getCode() == 1049 || strpos($e->getMessage(), 'Unknown database') !== false) {
+        // Jika database belum ada di MySQL lokal, coba buat database otomatis
+        if (!$isVercel && ($e->getCode() == 1049 || strpos($e->getMessage(), 'Unknown database') !== false)) {
             try {
-                $rootDsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";charset=utf8mb4";
-                $rootPdo = new PDO($rootDsn, DB_USER, DB_PASS, $options);
-                $rootPdo->exec("CREATE DATABASE IF NOT EXISTS `" . DB_NAME . "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                $rootDsn = "mysql:host={$config['host']};port={$config['port']};charset=utf8mb4";
+                $rootPdo = new PDO($rootDsn, $config['user'], $config['pass'], $options);
+                $rootPdo->exec("CREATE DATABASE IF NOT EXISTS `{$config['name']}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
                 
-                // Hubungkan kembali ke database yang baru dibuat
-                $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
-                ensureTablesExist($pdo);
+                $pdo = new PDO($dsn, $config['user'], $config['pass'], $options);
+                ensureTablesExist($pdo, 'mysql');
+                return $pdo;
             } catch (PDOException $innerEx) {
-                die("<div style='font-family:sans-serif; padding:2rem; background:#fee2e2; color:#991b1b; border-radius:8px;'>
-                    <h3>Gagal Menghubungkan ke MySQL XAMPP</h3>
-                    <p>Pastikan modul MySQL di XAMPP Control Panel telah diaktifkan (Status: Running).</p>
-                    <p><strong>Pesan Kesalahan:</strong> " . htmlspecialchars($innerEx->getMessage()) . "</p>
-                </div>");
+                // Biarkan lanjut ke pengecekan Vercel / Error display
             }
-        } else {
-            die("<div style='font-family:sans-serif; padding:2rem; background:#fee2e2; color:#991b1b; border-radius:8px;'>
-                <h3>Gagal Menghubungkan ke MySQL XAMPP</h3>
-                <p>Pastikan modul MySQL di XAMPP Control Panel telah diaktifkan (Status: Running).</p>
-                <p><strong>Pesan Kesalahan:</strong> " . htmlspecialchars($e->getMessage()) . "</p>
-            </div>");
         }
+
+        // 2. Jika di Vercel serverless dan koneksi MySQL gagal (belum pasang cloud DB), gunakan SQLite di /tmp
+        if ($isVercel && extension_loaded('pdo_sqlite')) {
+            try {
+                $sqlitePath = sys_get_temp_dir() . '/pawmate_db.sqlite';
+                $pdo = new PDO("sqlite:" . $sqlitePath, null, null, $options);
+                ensureTablesExist($pdo, 'sqlite');
+                return $pdo;
+            } catch (Exception $sqEx) {
+                // Lanjut ke error display
+            }
+        }
+
+        // 3. Tampilkan pesan error ramah
+        die("<div style='font-family:sans-serif; padding:2rem; background:#fee2e2; color:#991b1b; border-radius:8px; max-width:650px; margin:3rem auto; line-height:1.6;'>
+            <h3 style='margin-top:0;'>Gagal Menghubungkan ke Database</h3>
+            <p><strong>Lokal XAMPP:</strong> Pastikan modul <strong>MySQL</strong> di XAMPP Control Panel sudah dalam status <strong>Running</strong>.</p>
+            <p><strong>Vercel / Cloud:</strong> Atur Environment Variables di Vercel Dashboard (<code>DB_HOST</code>, <code>DB_USER</code>, <code>DB_PASS</code>, <code>DB_NAME</code>, <code>DB_PORT</code>) untuk menghubungkan ke cloud MySQL (misal: TiDB Serverless, Aiven, atau Railway).</p>
+            <p style='font-size:0.85rem; color:#b91c1c;'><strong>Detail Error:</strong> " . htmlspecialchars($e->getMessage()) . "</p>
+        </div>");
     }
 
     return $pdo;
 }
 
 /**
- * Memastikan skema tabel dan seed data awal sudah tersedia di database
+ * Memastikan tabel skema dan seed data sudah ada
  */
-function ensureTablesExist($pdo) {
-    // 1. Tabel users
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `users` (
-        `id` VARCHAR(50) NOT NULL PRIMARY KEY,
-        `name` VARCHAR(100) NOT NULL,
-        `email` VARCHAR(100) NOT NULL UNIQUE,
-        `phone` VARCHAR(30) DEFAULT '',
-        `password` VARCHAR(255) NOT NULL,
-        `role` ENUM('admin', 'user') NOT NULL DEFAULT 'user',
-        `address` TEXT NULL,
-        `occupation` VARCHAR(100) DEFAULT '',
-        `registered_at` DATE NULL,
-        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+function ensureTablesExist($pdo, $driver = 'mysql') {
+    if ($driver === 'sqlite') {
+        // Skema SQLite untuk Vercel Serverless
+        $pdo->exec("CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            phone TEXT DEFAULT '',
+            password TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'user',
+            address TEXT,
+            occupation TEXT DEFAULT '',
+            registered_at TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )");
 
-    // 2. Tabel pets
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `pets` (
-        `id` VARCHAR(50) NOT NULL PRIMARY KEY,
-        `name` VARCHAR(100) NOT NULL,
-        `species` ENUM('Anjing', 'Kucing', 'Lainnya') NOT NULL DEFAULT 'Anjing',
-        `breed` VARCHAR(100) DEFAULT '',
-        `age` VARCHAR(50) DEFAULT '',
-        `gender` ENUM('Jantan', 'Betina') NOT NULL DEFAULT 'Jantan',
-        `size` VARCHAR(50) DEFAULT 'Sedang',
-        `location` VARCHAR(100) NOT NULL DEFAULT 'Jakarta',
-        `status` ENUM('Tersedia', 'Dalam Proses', 'Sudah Diadopsi') NOT NULL DEFAULT 'Tersedia',
-        `image` TEXT NOT NULL,
-        `gallery` TEXT NULL,
-        `description` TEXT NULL,
-        `temperament` TEXT NULL,
-        `health` TEXT NULL,
-        `vaccinated` VARCHAR(100) DEFAULT '',
-        `care_needs` TEXT NULL,
-        `created_at` DATE NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS pets (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            species TEXT NOT NULL DEFAULT 'Anjing',
+            breed TEXT DEFAULT '',
+            age TEXT DEFAULT '',
+            gender TEXT NOT NULL DEFAULT 'Jantan',
+            size TEXT DEFAULT 'Sedang',
+            location TEXT NOT NULL DEFAULT 'Jakarta',
+            status TEXT NOT NULL DEFAULT 'Tersedia',
+            image TEXT NOT NULL,
+            gallery TEXT,
+            description TEXT,
+            temperament TEXT,
+            health TEXT,
+            vaccinated TEXT DEFAULT '',
+            care_needs TEXT,
+            created_at TEXT
+        )");
 
-    // 3. Tabel applications
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `applications` (
-        `id` VARCHAR(50) NOT NULL PRIMARY KEY,
-        `user_id` VARCHAR(50) NOT NULL,
-        `pet_id` VARCHAR(50) NOT NULL,
-        `user_name` VARCHAR(100) NOT NULL,
-        `user_email` VARCHAR(100) NOT NULL,
-        `user_phone` VARCHAR(30) NOT NULL,
-        `pet_name` VARCHAR(100) NOT NULL,
-        `pet_species` VARCHAR(50) DEFAULT '',
-        `pet_image` TEXT NULL,
-        `address` TEXT NOT NULL,
-        `occupation` VARCHAR(100) DEFAULT '',
-        `housing_type` VARCHAR(100) DEFAULT '',
-        `pet_experience` TEXT NULL,
-        `adoption_reason` TEXT NULL,
-        `commitment_agreed` TINYINT(1) DEFAULT 1,
-        `status` ENUM('Menunggu', 'Dalam Proses', 'Disetujui', 'Ditolak') NOT NULL DEFAULT 'Menunggu',
-        `admin_notes` TEXT NULL,
-        `applied_at` DATETIME NOT NULL,
-        INDEX (`user_id`),
-        INDEX (`pet_id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS applications (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            pet_id TEXT NOT NULL,
+            user_name TEXT NOT NULL,
+            user_email TEXT NOT NULL,
+            user_phone TEXT NOT NULL,
+            pet_name TEXT NOT NULL,
+            pet_species TEXT DEFAULT '',
+            pet_image TEXT,
+            address TEXT NOT NULL,
+            occupation TEXT DEFAULT '',
+            housing_type TEXT DEFAULT '',
+            pet_experience TEXT,
+            adoption_reason TEXT,
+            commitment_agreed INTEGER DEFAULT 1,
+            status TEXT NOT NULL DEFAULT 'Menunggu',
+            admin_notes TEXT,
+            applied_at TEXT NOT NULL
+        )");
 
-    // 4. Tabel favorites
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `favorites` (
-        `id` INT AUTO_INCREMENT PRIMARY KEY,
-        `user_id` VARCHAR(50) NOT NULL,
-        `pet_id` VARCHAR(50) NOT NULL,
-        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY `unique_user_pet` (`user_id`, `pet_id`),
-        INDEX (`user_id`),
-        INDEX (`pet_id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS favorites (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            pet_id TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, pet_id)
+        )");
+    } else {
+        // Skema MySQL Standar (XAMPP / Remote MySQL)
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `users` (
+            `id` VARCHAR(50) NOT NULL PRIMARY KEY,
+            `name` VARCHAR(100) NOT NULL,
+            `email` VARCHAR(100) NOT NULL UNIQUE,
+            `phone` VARCHAR(30) DEFAULT '',
+            `password` VARCHAR(255) NOT NULL,
+            `role` ENUM('admin', 'user') NOT NULL DEFAULT 'user',
+            `address` TEXT NULL,
+            `occupation` VARCHAR(100) DEFAULT '',
+            `registered_at` DATE NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-    // Cek apakah data awal perlu dimasukkan (Seed data)
-    $stmt = $pdo->query("SELECT COUNT(*) FROM `pets`");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `pets` (
+            `id` VARCHAR(50) NOT NULL PRIMARY KEY,
+            `name` VARCHAR(100) NOT NULL,
+            `species` ENUM('Anjing', 'Kucing', 'Lainnya') NOT NULL DEFAULT 'Anjing',
+            `breed` VARCHAR(100) DEFAULT '',
+            `age` VARCHAR(50) DEFAULT '',
+            `gender` ENUM('Jantan', 'Betina') NOT NULL DEFAULT 'Jantan',
+            `size` VARCHAR(50) DEFAULT 'Sedang',
+            `location` VARCHAR(100) NOT NULL DEFAULT 'Jakarta',
+            `status` ENUM('Tersedia', 'Dalam Proses', 'Sudah Diadopsi') NOT NULL DEFAULT 'Tersedia',
+            `image` TEXT NOT NULL,
+            `gallery` TEXT NULL,
+            `description` TEXT NULL,
+            `temperament` TEXT NULL,
+            `health` TEXT NULL,
+            `vaccinated` VARCHAR(100) DEFAULT '',
+            `care_needs` TEXT NULL,
+            `created_at` DATE NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `applications` (
+            `id` VARCHAR(50) NOT NULL PRIMARY KEY,
+            `user_id` VARCHAR(50) NOT NULL,
+            `pet_id` VARCHAR(50) NOT NULL,
+            `user_name` VARCHAR(100) NOT NULL,
+            `user_email` VARCHAR(100) NOT NULL,
+            `user_phone` VARCHAR(30) NOT NULL,
+            `pet_name` VARCHAR(100) NOT NULL,
+            `pet_species` VARCHAR(50) DEFAULT '',
+            `pet_image` TEXT NULL,
+            `address` TEXT NOT NULL,
+            `occupation` VARCHAR(100) DEFAULT '',
+            `housing_type` VARCHAR(100) DEFAULT '',
+            `pet_experience` TEXT NULL,
+            `adoption_reason` TEXT NULL,
+            `commitment_agreed` TINYINT(1) DEFAULT 1,
+            `status` ENUM('Menunggu', 'Dalam Proses', 'Disetujui', 'Ditolak') NOT NULL DEFAULT 'Menunggu',
+            `admin_notes` TEXT NULL,
+            `applied_at` DATETIME NOT NULL,
+            INDEX (`user_id`),
+            INDEX (`pet_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `favorites` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `user_id` VARCHAR(50) NOT NULL,
+            `pet_id` VARCHAR(50) NOT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY `unique_user_pet` (`user_id`, `pet_id`),
+            INDEX (`user_id`),
+            INDEX (`pet_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    }
+
+    // Cek apakah data awal perlu dimasukkan
+    $stmt = $pdo->query("SELECT COUNT(*) FROM pets");
     $petCount = $stmt->fetchColumn();
 
     if ($petCount == 0) {
-        seedInitialData($pdo);
+        seedInitialData($pdo, $driver);
     }
 }
 
 /**
- * Mengisi database dengan data demo awal jika masih kosong
+ * Seed data awal
  */
-function seedInitialData($pdo) {
+function seedInitialData($pdo, $driver = 'mysql') {
     // 1. Seed Users
     $users = [
         [
@@ -177,9 +257,11 @@ function seedInitialData($pdo) {
         ]
     ];
 
-    $stmtUser = $pdo->prepare("INSERT INTO `users` (`id`, `name`, `email`, `phone`, `password`, `role`, `address`, `occupation`, `registered_at`) 
-        VALUES (:id, :name, :email, :phone, :password, :role, :address, :occupation, :registered_at)
-        ON DUPLICATE KEY UPDATE `name` = VALUES(`name`)");
+    $userSql = ($driver === 'sqlite')
+        ? "INSERT OR IGNORE INTO users (id, name, email, phone, password, role, address, occupation, registered_at) VALUES (:id, :name, :email, :phone, :password, :role, :address, :occupation, :registered_at)"
+        : "INSERT INTO `users` (`id`, `name`, `email`, `phone`, `password`, `role`, `address`, `occupation`, `registered_at`) VALUES (:id, :name, :email, :phone, :password, :role, :address, :occupation, :registered_at) ON DUPLICATE KEY UPDATE `name` = VALUES(`name`)";
+    
+    $stmtUser = $pdo->prepare($userSql);
     foreach ($users as $u) {
         $stmtUser->execute($u);
     }
@@ -366,11 +448,11 @@ function seedInitialData($pdo) {
         ]
     ];
 
-    $stmtPet = $pdo->prepare("INSERT INTO `pets` 
-        (`id`, `name`, `species`, `breed`, `age`, `gender`, `size`, `location`, `status`, `image`, `gallery`, `description`, `temperament`, `health`, `vaccinated`, `care_needs`, `created_at`)
-        VALUES 
-        (:id, :name, :species, :breed, :age, :gender, :size, :location, :status, :image, :gallery, :description, :temperament, :health, :vaccinated, :care_needs, :created_at)
-        ON DUPLICATE KEY UPDATE `name` = VALUES(`name`)");
+    $petSql = ($driver === 'sqlite')
+        ? "INSERT OR IGNORE INTO pets (id, name, species, breed, age, gender, size, location, status, image, gallery, description, temperament, health, vaccinated, care_needs, created_at) VALUES (:id, :name, :species, :breed, :age, :gender, :size, :location, :status, :image, :gallery, :description, :temperament, :health, :vaccinated, :care_needs, :created_at)"
+        : "INSERT INTO `pets` (`id`, `name`, `species`, `breed`, `age`, `gender`, `size`, `location`, `status`, `image`, `gallery`, `description`, `temperament`, `health`, `vaccinated`, `care_needs`, `created_at`) VALUES (:id, :name, :species, :breed, :age, :gender, :size, :location, :status, :image, :gallery, :description, :temperament, :health, :vaccinated, :care_needs, :created_at) ON DUPLICATE KEY UPDATE `name` = VALUES(`name`)";
+
+    $stmtPet = $pdo->prepare($petSql);
     foreach ($pets as $p) {
         $stmtPet->execute($p);
     }
@@ -399,11 +481,11 @@ function seedInitialData($pdo) {
         ]
     ];
 
-    $stmtApp = $pdo->prepare("INSERT INTO `applications`
-        (`id`, `user_id`, `pet_id`, `user_name`, `user_email`, `user_phone`, `pet_name`, `pet_species`, `pet_image`, `address`, `occupation`, `housing_type`, `pet_experience`, `adoption_reason`, `commitment_agreed`, `status`, `admin_notes`, `applied_at`)
-        VALUES
-        (:id, :user_id, :pet_id, :user_name, :user_email, :user_phone, :pet_name, :pet_species, :pet_image, :address, :occupation, :housing_type, :pet_experience, :adoption_reason, :commitment_agreed, :status, :admin_notes, :applied_at)
-        ON DUPLICATE KEY UPDATE `status` = VALUES(`status`)");
+    $appSql = ($driver === 'sqlite')
+        ? "INSERT OR IGNORE INTO applications (id, user_id, pet_id, user_name, user_email, user_phone, pet_name, pet_species, pet_image, address, occupation, housing_type, pet_experience, adoption_reason, commitment_agreed, status, admin_notes, applied_at) VALUES (:id, :user_id, :pet_id, :user_name, :user_email, :user_phone, :pet_name, :pet_species, :pet_image, :address, :occupation, :housing_type, :pet_experience, :adoption_reason, :commitment_agreed, :status, :admin_notes, :applied_at)"
+        : "INSERT INTO `applications` (`id`, `user_id`, `pet_id`, `user_name`, `user_email`, `user_phone`, `pet_name`, `pet_species`, `pet_image`, `address`, `occupation`, `housing_type`, `pet_experience`, `adoption_reason`, `commitment_agreed`, `status`, `admin_notes`, `applied_at`) VALUES (:id, :user_id, :pet_id, :user_name, :user_email, :user_phone, :pet_name, :pet_species, :pet_image, :address, :occupation, :housing_type, :pet_experience, :adoption_reason, :commitment_agreed, :status, :admin_notes, :applied_at) ON DUPLICATE KEY UPDATE `status` = VALUES(`status`)";
+
+    $stmtApp = $pdo->prepare($appSql);
     foreach ($applications as $a) {
         $stmtApp->execute($a);
     }
@@ -414,7 +496,10 @@ function seedInitialData($pdo) {
         ['user_id' => 'usr-demo', 'pet_id' => 'pet-4']
     ];
 
-    $stmtFav = $pdo->prepare("INSERT IGNORE INTO `favorites` (`user_id`, `pet_id`) VALUES (:user_id, :pet_id)");
+    $stmtFav = $pdo->prepare("INSERT OR IGNORE INTO favorites (user_id, pet_id) VALUES (:user_id, :pet_id)");
+    if ($driver !== 'sqlite') {
+        $stmtFav = $pdo->prepare("INSERT IGNORE INTO `favorites` (`user_id`, `pet_id`) VALUES (:user_id, :pet_id)");
+    }
     foreach ($favorites as $f) {
         $stmtFav->execute($f);
     }
