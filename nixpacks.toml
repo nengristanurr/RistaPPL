@@ -1,0 +1,6 @@
+[PHP]
+engine = php-8.2
+web_server = apache
+
+[Apache]
+document_root = /app
